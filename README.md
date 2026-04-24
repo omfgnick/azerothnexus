@@ -53,6 +53,8 @@ Production compose:
 ./install_linux.sh --prod
 ```
 
+The development stack keeps Postgres and Redis internal to Docker by default, so an existing local database on `5432` or Redis on `6379` will not block startup.
+
 Update an existing Git-based install:
 
 ```bash
