@@ -1,0 +1,59 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: azeroth_nexus
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  api:
+    build:
+      context: ./apps/api
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - ./apps/api:/app
+      - ./scripts:/app/scripts
+
+  worker:
+    build:
+      context: ./apps/api
+    command: ["dramatiq", "app.tasks.jobs"]
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./apps/api:/app
+      - ./scripts:/app/scripts
+
+  web:
+    build:
+      context: ./apps/web
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:${API_PORT:-8000}
+    depends_on:
+      - api
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:
