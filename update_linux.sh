@@ -4,19 +4,22 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
+MODE_FILE=".azerothnexus-mode"
 COMPOSE_FILE="docker-compose.yml"
+MODE="development"
 SEED_DEMO_DATA="${SEED_DEMO_DATA:-0}"
 SKIP_PULL=0
 INSTALL_ARGS=()
 
 usage() {
   cat <<EOF
-Usage: ./update_linux.sh [--prod] [--seed-demo-data] [--skip-pull]
+Usage: ./update_linux.sh [--prod|--dev] [--seed-demo-data] [--skip-pull]
 
 Pull the latest Azeroth Nexus changes from Git and rebuild the Docker stack.
 
 Options:
   --prod             Use docker-compose.prod.yml
+  --dev              Use docker-compose.yml
   --seed-demo-data   Run the demo seed after the update
   --skip-pull        Rebuild with local files only, without git pull
   -h, --help         Show this help
@@ -27,7 +30,14 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --prod)
       COMPOSE_FILE="docker-compose.prod.yml"
+      MODE="production"
       INSTALL_ARGS+=(--prod)
+      shift
+      ;;
+    --dev)
+      COMPOSE_FILE="docker-compose.yml"
+      MODE="development"
+      INSTALL_ARGS+=(--dev)
       shift
       ;;
     --seed-demo-data)
@@ -79,6 +89,15 @@ fi
 
 git config core.fileMode false
 
+if [[ -f "$MODE_FILE" && ! " ${INSTALL_ARGS[*]} " =~ " --prod " && ! " ${INSTALL_ARGS[*]} " =~ " --dev " ]]; then
+  SAVED_MODE="$(tr -d '\r\n' < "$MODE_FILE" 2>/dev/null || true)"
+  if [[ "$SAVED_MODE" == "production" ]]; then
+    COMPOSE_FILE="docker-compose.prod.yml"
+    MODE="production"
+    INSTALL_ARGS+=(--prod)
+  fi
+fi
+
 if [[ "$SKIP_PULL" != "1" ]]; then
   if [[ -n "$(git status --porcelain)" ]]; then
     echo "Working tree has local changes. Commit, stash, or discard them before updating." >&2
@@ -115,6 +134,7 @@ echo "Rebuilding Azeroth Nexus using $COMPOSE_FILE"
 
 echo
 echo "Update complete."
+echo "Mode: $MODE"
 if [[ "$SEED_DEMO_DATA" == "1" ]]; then
   echo "Demo seed: enabled"
 fi

@@ -5,11 +5,12 @@ REPO_URL="${AZEROTH_NEXUS_REPO_URL:-https://github.com/omfgnick/azerothnexus.git
 BRANCH="${AZEROTH_NEXUS_BRANCH:-main}"
 INSTALL_DIR="${AZEROTH_NEXUS_INSTALL_DIR:-$HOME/azerothnexus}"
 SEED_DEMO_DATA="${SEED_DEMO_DATA:-0}"
+MODE="production"
 INSTALL_ARGS=()
 
 usage() {
   cat <<EOF
-Usage: ./install_from_git_linux.sh [--dir PATH] [--branch NAME] [--repo URL] [--prod] [--seed-demo-data]
+Usage: ./install_from_git_linux.sh [--dir PATH] [--branch NAME] [--repo URL] [--prod|--dev] [--seed-demo-data]
 
 Clone Azeroth Nexus directly from GitHub and start the Docker stack.
 
@@ -17,13 +18,15 @@ Options:
   --dir PATH         Destination checkout directory (default: $HOME/azerothnexus)
   --branch NAME      Branch to clone (default: main)
   --repo URL         Git repository URL (default: https://github.com/omfgnick/azerothnexus.git)
-  --prod             Use docker-compose.prod.yml after cloning
+  --prod             Install in production mode with nginx on the public port
+  --dev              Install in development mode
   --seed-demo-data   Run the demo seed after startup
   -h, --help         Show this help
 
 Examples:
   ./install_from_git_linux.sh
-  ./install_from_git_linux.sh --dir /opt/azerothnexus --prod
+  ./install_from_git_linux.sh --dir /opt/azerothnexus
+  ./install_from_git_linux.sh --dir /opt/azerothnexus --dev
   curl -fsSL https://raw.githubusercontent.com/omfgnick/azerothnexus/main/install_from_git_linux.sh | bash
 EOF
 }
@@ -43,7 +46,13 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     --prod)
-      INSTALL_ARGS+=(--prod)
+      MODE="production"
+      INSTALL_ARGS=(--prod)
+      shift
+      ;;
+    --dev)
+      MODE="development"
+      INSTALL_ARGS=(--dev)
       shift
       ;;
     --seed-demo-data)
@@ -62,6 +71,10 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+if [[ "$MODE" == "production" && ! " ${INSTALL_ARGS[*]} " =~ " --prod " ]]; then
+      INSTALL_ARGS+=(--prod)
+fi
 
 if [[ "$(uname -s)" != "Linux" ]]; then
   echo "This installer is intended for Linux environments." >&2
@@ -124,6 +137,7 @@ echo "Installing Azeroth Nexus from $INSTALL_DIR"
 echo
 echo "Install complete."
 echo "Project directory: $INSTALL_DIR"
+echo "Mode: $MODE"
 if [[ "$SEED_DEMO_DATA" == "1" ]]; then
   echo "Demo seed: enabled"
 fi

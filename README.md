@@ -28,7 +28,7 @@ This package now includes:
 
 ## Quick start (Linux)
 
-Install directly from GitHub:
+Install directly from GitHub in production mode with no port in the URL:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/omfgnick/azerothnexus/main/install_from_git_linux.sh | bash
@@ -37,7 +37,13 @@ curl -fsSL https://raw.githubusercontent.com/omfgnick/azerothnexus/main/install_
 Install into a custom directory in production mode:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/omfgnick/azerothnexus/main/install_from_git_linux.sh | bash -s -- --dir /opt/azerothnexus --prod
+curl -fsSL https://raw.githubusercontent.com/omfgnick/azerothnexus/main/install_from_git_linux.sh | bash -s -- --dir /opt/azerothnexus
+```
+
+Use development mode only when you explicitly want ports like `3000` and `8000`:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/omfgnick/azerothnexus/main/install_from_git_linux.sh | bash -s -- --dev
 ```
 
 If you already have a local checkout:
@@ -52,6 +58,8 @@ Production compose:
 ```bash
 ./install_linux.sh --prod
 ```
+
+The Git bootstrap installer uses production mode by default and remembers that mode for future `./update_linux.sh` runs. Production also defaults to `NGINX_PORT=80`, so the site opens without a port in the URL.
 
 The development stack keeps Postgres and Redis internal to Docker by default, so an existing local database on `5432` or Redis on `6379` will not block startup.
 
@@ -124,3 +132,4 @@ docker compose exec api python /app/scripts/seed.py
 - `install_from_git_linux.sh` clones the repository first, then delegates to `install_linux.sh`.
 - `update_linux.sh` requires a clean working tree before running `git pull --ff-only` and rebuilding the stack.
 - Linux Git installs set `core.fileMode=false` locally so script permission bits do not dirty the checkout after bootstrap.
+- The selected Linux runtime mode is stored locally in `.azerothnexus-mode`, so updates keep using production or development consistently.
