@@ -77,6 +77,8 @@ if [[ ! -d .git ]]; then
   exit 1
 fi
 
+git config core.fileMode false
+
 if [[ "$SKIP_PULL" != "1" ]]; then
   if [[ -n "$(git status --porcelain)" ]]; then
     echo "Working tree has local changes. Commit, stash, or discard them before updating." >&2

@@ -109,6 +109,8 @@ git clone --branch "$BRANCH" --single-branch "$REPO_URL" "$INSTALL_DIR"
 
 cd "$INSTALL_DIR"
 
+git config core.fileMode false
+
 for script in install_linux.sh update_linux.sh uninstall_linux.sh install.sh uninstall.sh; do
   if [[ -f "./$script" && ! -x "./$script" ]]; then
     chmod +x "./$script"

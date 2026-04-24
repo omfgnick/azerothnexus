@@ -123,3 +123,4 @@ docker compose exec api python /app/scripts/seed.py
 - Public compare, history, and search views are now included to make the ranking product feel closer to a modern premium competitive dashboard.
 - `install_from_git_linux.sh` clones the repository first, then delegates to `install_linux.sh`.
 - `update_linux.sh` requires a clean working tree before running `git pull --ff-only` and rebuilding the stack.
+- Linux Git installs set `core.fileMode=false` locally so script permission bits do not dirty the checkout after bootstrap.
