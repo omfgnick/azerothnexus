@@ -9,6 +9,10 @@ type AdminLoginFormProps = {
     username: string;
     password: string;
     submit: string;
+    entering: string;
+    invalid: string;
+    unavailable: string;
+    genericError: string;
   };
 };
 
@@ -35,7 +39,15 @@ export function AdminLoginForm({ nextPath, labels }: AdminLoginFormProps) {
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {
       setIsSubmitting(false);
-      setError(payload?.error || "Login failed.");
+      if (response.status === 401) {
+        setError(labels.invalid);
+        return;
+      }
+      if (response.status === 503) {
+        setError(labels.unavailable);
+        return;
+      }
+      setError(payload?.error || labels.genericError);
       return;
     }
 
@@ -75,7 +87,7 @@ export function AdminLoginForm({ nextPath, labels }: AdminLoginFormProps) {
       </div>
 
       <button type="submit" disabled={isSubmitting} className="arcane-button w-full disabled:cursor-not-allowed disabled:opacity-60">
-        {isSubmitting ? "Entering sanctum..." : labels.submit}
+        {isSubmitting ? labels.entering : labels.submit}
       </button>
 
       {error ? <p className="text-sm uppercase tracking-[0.16em] text-rose-200/80">{error}</p> : null}

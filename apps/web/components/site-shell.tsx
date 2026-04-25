@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { ReactNode } from "react";
+import { usePathname } from "next/navigation";
 
 import { LocaleToggle } from "@/components/locale-toggle";
 import {
@@ -19,8 +22,10 @@ type SiteShellProps = {
     eyebrow: string;
     summary: string;
     status: string;
+    home: string;
     charterTitle: string;
     charterDescription: string;
+    footerNote: string;
     nav: {
       rankings: string;
       search: string;
@@ -33,8 +38,9 @@ type SiteShellProps = {
 };
 
 export function SiteShell({ children, locale, copy }: SiteShellProps) {
+  const pathname = usePathname();
   const navLinks = [
-    { href: "/", label: "Home", icon: NexusCrestIcon },
+    { href: "/", label: copy.home, icon: NexusCrestIcon },
     { href: "/rankings", label: copy.nav.rankings, icon: WarboardSigilIcon },
     { href: "/search", label: copy.nav.search, icon: SearchSigilIcon },
     { href: "/compare", label: copy.nav.compare, icon: CompareSigilIcon },
@@ -45,29 +51,41 @@ export function SiteShell({ children, locale, copy }: SiteShellProps) {
 
   return (
     <div className="min-h-screen bg-transparent text-[var(--text-main)]">
-      <div className="sticky top-0 z-40 border-b border-white/8 bg-[rgba(4,7,16,0.9)] backdrop-blur-xl">
+      <div className="sticky top-0 z-40 border-b border-white/8 bg-[rgba(4,7,16,0.9)] backdrop-blur-[20px]">
         <div className="mx-auto flex max-w-[1440px] items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
           <Link href="/" className="mr-2 flex min-w-0 items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-[10px] border border-gold/20 bg-[linear-gradient(135deg,rgba(193,147,64,0.2),rgba(193,147,64,0.06))]">
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-[10px] border border-gold/25 bg-[linear-gradient(135deg,rgba(193,147,64,0.2),rgba(193,147,64,0.06))]">
+              <div className="absolute inset-[3px] rounded-[7px] border border-gold/15" />
               <NexusCrestIcon className="h-4 w-4 text-gold" />
             </div>
             <div className="min-w-0">
-              <div className="truncate text-[0.8rem] uppercase tracking-[0.24em] text-gold">Azeroth Nexus</div>
+              <div className="truncate font-['Cinzel',serif] text-[0.8rem] uppercase tracking-[0.24em] text-gold">Azeroth Nexus</div>
               <div className="hidden truncate text-xs text-white/38 md:block">{copy.summary}</div>
             </div>
           </Link>
 
-          <nav className="flex min-w-0 flex-1 snap-x items-center gap-2 overflow-x-auto pb-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="inline-flex min-h-[40px] min-w-max items-center gap-2 rounded-full border border-white/8 bg-white/[0.03] px-4 py-2 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-white/70 transition hover:border-white/14 hover:bg-white/[0.06] hover:text-white"
-              >
-                <link.icon className="h-4 w-4" />
-                <span>{link.label}</span>
-              </Link>
-            ))}
+          <nav className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto pb-1">
+            {navLinks.map((link) => {
+              const isActive =
+                link.href === "/"
+                  ? pathname === "/"
+                  : pathname === link.href || pathname.startsWith(`${link.href}/`);
+
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`inline-flex min-h-[40px] min-w-max items-center gap-2 rounded-[10px] border px-3.5 py-2 text-[0.72rem] font-semibold uppercase tracking-[0.14em] transition ${
+                    isActive
+                      ? "border-gold/25 bg-white/[0.05] text-gold"
+                      : "border-transparent text-white/50 hover:border-white/10 hover:bg-white/[0.04] hover:text-white"
+                  }`}
+                >
+                  <link.icon className="h-4 w-4" />
+                  <span>{link.label}</span>
+                </Link>
+              );
+            })}
           </nav>
 
           <div className="ml-auto hidden items-center gap-3 lg:flex">
@@ -77,10 +95,10 @@ export function SiteShell({ children, locale, copy }: SiteShellProps) {
             </div>
             <Link
               href="/search"
-              className="inline-flex min-h-[40px] items-center gap-2 rounded-full border border-white/8 bg-white/[0.03] px-4 py-2 text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-white/70 transition hover:border-white/14 hover:bg-white/[0.06] hover:text-white"
+              className="inline-flex min-h-[40px] items-center gap-2 rounded-[10px] border border-white/8 bg-white/[0.04] px-4 py-2 text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-white/70 transition hover:border-white/14 hover:bg-white/[0.06] hover:text-white"
             >
               <SearchSigilIcon className="h-4 w-4" />
-              <span>Search</span>
+              <span>{copy.nav.search}</span>
               <kbd className="rounded border border-white/12 bg-white/[0.04] px-1.5 py-0.5 font-['Space_Mono',monospace] text-[10px] text-white/55">/</kbd>
             </Link>
             <LocaleToggle locale={locale} />
@@ -89,6 +107,29 @@ export function SiteShell({ children, locale, copy }: SiteShellProps) {
       </div>
 
       <main className="mx-auto max-w-[1440px] px-4 pb-16 pt-10 sm:px-6 lg:px-8">{children}</main>
+
+      <footer className="mt-10 border-t border-white/8 bg-[rgba(4,7,16,0.78)]">
+        <div className="mx-auto flex max-w-[1440px] flex-col gap-5 px-4 py-8 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+          <div className="font-['Cinzel',serif] text-sm uppercase tracking-[0.22em] text-gold">Azeroth Nexus</div>
+          <div className="flex flex-wrap gap-4 text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-white/55">
+            <Link href="/rankings" className="transition hover:text-white">
+              {copy.nav.rankings}
+            </Link>
+            <Link href="/search" className="transition hover:text-white">
+              {copy.nav.search}
+            </Link>
+            <Link href="/compare" className="transition hover:text-white">
+              {copy.nav.compare}
+            </Link>
+            <Link href="/admin" className="transition hover:text-white">
+              {copy.nav.admin}
+            </Link>
+          </div>
+          <div className="text-xs text-white/38">
+            {copy.footerNote}
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

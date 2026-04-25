@@ -34,23 +34,42 @@ type CompareResponse = {
   verdict: string;
 };
 
+type ComparePanelLabels = {
+  eyebrow: string;
+  verdict: string;
+  comparisonTarget: string;
+  delta: string;
+  momentum: string;
+  evenFooting: string;
+  sideEdge: string;
+  dimensionsUnavailable: string;
+};
+
 function edgeTone(winner: string) {
   if (winner === "left") return "text-gold";
   if (winner === "right") return "text-sky-100";
   return "text-white/70";
 }
 
-export function ComparePanel({ title, comparison }: { title: string; comparison: CompareResponse }) {
+export function ComparePanel({
+  title,
+  comparison,
+  labels,
+}: {
+  title: string;
+  comparison: CompareResponse;
+  labels: ComparePanelLabels;
+}) {
   return (
     <section className="panel panel-section">
       <div className="border-b border-white/10 pb-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="eyebrow">Comparison readout</p>
+            <p className="eyebrow">{labels.eyebrow}</p>
             <h2 className="mt-4 section-title">{title}</h2>
             <p className="mt-3 max-w-3xl text-sm text-white/60">{comparison.verdict}</p>
           </div>
-          <div className="rune-pill">Side-by-side verdict</div>
+          <div className="rune-pill">{labels.verdict}</div>
         </div>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -59,7 +78,7 @@ export function ComparePanel({ title, comparison }: { title: string; comparison:
               key={side.label}
               className={`data-slab ${index === 0 ? "border-gold/20" : "border-sky-300/15"}`}
             >
-              <div className="text-[0.68rem] uppercase tracking-[0.34em] text-gold/75">{side.subtitle ?? "Comparison target"}</div>
+              <div className="text-[0.68rem] uppercase tracking-[0.34em] text-gold/75">{side.subtitle ?? labels.comparisonTarget}</div>
               <div className="mt-3 text-2xl text-white" style={{ fontFamily: "var(--font-display)" }}>
                 {side.label}
               </div>
@@ -71,8 +90,8 @@ export function ComparePanel({ title, comparison }: { title: string; comparison:
               <div className="mt-5 score-number">{side.score.toFixed(1)}</div>
               {side.history ? (
                 <div className="mt-4 text-sm text-white/60">
-                  Delta {side.history.score_delta >= 0 ? "+" : ""}
-                  {side.history.score_delta.toFixed(1)} / Momentum {side.history.momentum_label}
+                  {labels.delta} {side.history.score_delta >= 0 ? "+" : ""}
+                  {side.history.score_delta.toFixed(1)} / {labels.momentum} {side.history.momentum_label}
                 </div>
               ) : null}
             </div>
@@ -88,7 +107,7 @@ export function ComparePanel({ title, comparison }: { title: string; comparison:
                 <div>
                   <div className="text-[0.68rem] uppercase tracking-[0.3em] text-gold/75">{dimension.label}</div>
                   <div className={`mt-2 text-sm font-semibold uppercase tracking-[0.16em] ${edgeTone(dimension.winner)}`}>
-                    {dimension.winner === "tie" ? "Even footing" : `${dimension.winner} side edge`}
+                    {dimension.winner === "tie" ? labels.evenFooting : `${dimension.winner} ${labels.sideEdge}`}
                   </div>
                 </div>
                 <div className="text-right">
@@ -106,7 +125,7 @@ export function ComparePanel({ title, comparison }: { title: string; comparison:
           ))
         ) : (
           <div className="data-slab lg:col-span-2">
-            <p className="text-sm leading-7 text-white/60">Comparison dimensions are unavailable for this readout.</p>
+            <p className="text-sm leading-7 text-white/60">{labels.dimensionsUnavailable}</p>
           </div>
         )}
       </div>

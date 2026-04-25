@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState, useTransition } from "react";
 
+import { useLocaleCopy } from "@/components/locale-provider";
+
 type IntegrationSettings = {
   providers: Record<string, Record<string, unknown>>;
   feature_flags: Record<string, unknown>;
@@ -10,52 +12,6 @@ type IntegrationSettings = {
 
 type AdminIntegrationFormProps = {
   initialSettings: IntegrationSettings;
-};
-
-const providerMeta: Record<
-  string,
-  {
-    title: string;
-    copy: string;
-    authMode: string;
-    visitorModel: string;
-    requirements: string;
-    notes: string[];
-  }
-> = {
-  blizzard: {
-    title: "Blizzard Battle.net",
-    copy: "Armory, guild profile, character summary, equipment, talents, and official Mythic+ data.",
-    authMode: "Server-side OAuth app credentials",
-    visitorModel: "No visitor login",
-    requirements: "Client ID + Client Secret",
-    notes: [
-      "Visitors do not authenticate. Only the server uses Blizzard credentials.",
-      "If a character profile is stale on Blizzard, the next server refresh will retry automatically.",
-    ],
-  },
-  raiderio: {
-    title: "Raider.IO",
-    copy: "Public score, roster, raid race, progression, and competitive activity signals.",
-    authMode: "Public API",
-    visitorModel: "No visitor login",
-    requirements: "API base URL only",
-    notes: [
-      "No secret is required in the current integration flow.",
-      "Returned data still depends on public Blizzard-facing visibility on the player side.",
-    ],
-  },
-  warcraftlogs: {
-    title: "Warcraft Logs",
-    copy: "Public parse averages, zone rankings, and raid performance signals.",
-    authMode: "Server-side OAuth client credentials",
-    visitorModel: "No visitor login",
-    requirements: "Client ID + Client Secret",
-    notes: [
-      "The site stays public. Only your server authenticates against Warcraft Logs.",
-      "Private logs still depend on the source permissions defined in Warcraft Logs.",
-    ],
-  },
 };
 
 function cloneSettings(settings: IntegrationSettings): IntegrationSettings {
@@ -73,12 +29,83 @@ function statusTone(enabled: boolean, configured: boolean) {
 }
 
 export function AdminIntegrationForm({ initialSettings }: AdminIntegrationFormProps) {
+  const { locale, copy } = useLocaleCopy();
+  const labels = copy.adminComponents;
+  const providerLabels = copy.adminIntegrations.providerLabels;
+  const isPt = locale === "pt-BR";
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isWorking, setIsWorking] = useState(false);
   const [form, setForm] = useState<IntegrationSettings>(() => cloneSettings(initialSettings));
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const providerMeta: Record<
+    string,
+    {
+      title: string;
+      copy: string;
+      authMode: string;
+      visitorModel: string;
+      requirements: string;
+      notes: string[];
+    }
+  > = {
+    blizzard: {
+      title: providerLabels.blizzard.label,
+      copy: isPt
+        ? "Armory, perfil de guilda, resumo de personagem, equipamentos, talentos e dados oficiais de Mythic+."
+        : "Armory, guild profile, character summary, equipment, talents, and official Mythic+ data.",
+      authMode: providerLabels.blizzard.auth,
+      visitorModel: labels.publicConsultation,
+      requirements: providerLabels.blizzard.requirements,
+      notes: isPt
+        ? [
+            "Visitantes nao autenticam. Apenas o servidor usa as credenciais da Blizzard.",
+            "Se um personagem estiver desatualizado na Blizzard, o proximo refresh do servidor tenta novamente.",
+          ]
+        : [
+            "Visitors do not authenticate. Only the server uses Blizzard credentials.",
+            "If a character profile is stale on Blizzard, the next server refresh will retry automatically.",
+          ],
+    },
+    raiderio: {
+      title: providerLabels.raiderio.label,
+      copy: isPt
+        ? "Score publico, roster, race de raid, progressao e sinais competitivos de atividade."
+        : "Public score, roster, raid race, progression, and competitive activity signals.",
+      authMode: providerLabels.raiderio.auth,
+      visitorModel: labels.publicConsultation,
+      requirements: providerLabels.raiderio.requirements,
+      notes: isPt
+        ? [
+            "Nenhum segredo e exigido no fluxo atual de integracao.",
+            "Os dados retornados ainda dependem da visibilidade publica do lado do jogador.",
+          ]
+        : [
+            "No secret is required in the current integration flow.",
+            "Returned data still depends on public player visibility.",
+          ],
+    },
+    warcraftlogs: {
+      title: providerLabels.warcraftlogs.label,
+      copy: isPt
+        ? "Medias publicas de parse, rankings por zona e sinais de performance de raid."
+        : "Public parse averages, zone rankings, and raid performance signals.",
+      authMode: providerLabels.warcraftlogs.auth,
+      visitorModel: labels.publicConsultation,
+      requirements: providerLabels.warcraftlogs.requirements,
+      notes: isPt
+        ? [
+            "O site continua publico. Apenas o servidor autentica no Warcraft Logs.",
+            "Logs privados continuam dependendo das permissoes configuradas na origem.",
+          ]
+        : [
+            "The site remains public. Only your server authenticates against Warcraft Logs.",
+            "Private logs still depend on source permissions defined in Warcraft Logs.",
+          ],
+    },
+  };
 
   function updateProvider(provider: string, field: string, value: unknown) {
     setForm((current) => ({
@@ -119,13 +146,13 @@ export function AdminIntegrationForm({ initialSettings }: AdminIntegrationFormPr
 
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {
-      setError(payload?.detail || payload?.error || "Falha ao salvar integracoes.");
+      setError(payload?.detail || payload?.error || labels.saveError);
       setIsWorking(false);
       return;
     }
 
     setForm(cloneSettings(payload));
-    setMessage("Integracoes salvas. Os proximos refreshes ja passam a usar a configuracao nova.");
+    setMessage(labels.saveSuccess);
     startTransition(() => {
       router.refresh();
       setIsWorking(false);
@@ -137,44 +164,42 @@ export function AdminIntegrationForm({ initialSettings }: AdminIntegrationFormPr
       <div className="panel panel-section">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="eyebrow">External integrations</p>
+            <p className="eyebrow">{labels.externalIntegrations}</p>
             <h2 className="mt-4 text-3xl text-white" style={{ fontFamily: "var(--font-display)" }}>
-              Provider vault
+              {labels.providerVault}
             </h2>
-            <p className="mt-4 max-w-3xl text-sm leading-7 text-white/70">
-              The site remains public for visitors. These credentials are server-side only and are used by scheduled refreshes, admin refreshes, and background syncs.
-            </p>
+            <p className="mt-4 max-w-3xl text-sm leading-7 text-white/70">{labels.providerVaultDescription}</p>
           </div>
           <button
             type="submit"
             disabled={isPending || isWorking}
             className="arcane-button min-h-[48px] px-6 py-3 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isPending || isWorking ? "Salvando..." : "Salvar integracoes"}
+            {isPending || isWorking ? labels.saveWorking : labels.saveIntegrations}
           </button>
         </div>
 
         <div className="mt-6 grid gap-4 md:grid-cols-3">
           <div className="data-slab">
-            <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Visitor model</div>
+            <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">{labels.visitorModel}</div>
             <div className="mt-3 text-2xl text-white" style={{ fontFamily: "var(--font-display)" }}>
-              Public consultation
+              {labels.visitorModelValue}
             </div>
-            <p className="mt-3 text-sm leading-6 text-white/60">No end-user login flow is required for guild or character lookup.</p>
+            <p className="mt-3 text-sm leading-6 text-white/60">{labels.visitorModelDescription}</p>
           </div>
           <div className="data-slab">
-            <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Secret handling</div>
+            <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">{labels.secretHandling}</div>
             <div className="mt-3 text-2xl text-white" style={{ fontFamily: "var(--font-display)" }}>
-              Server-side only
+              {labels.secretHandlingValue}
             </div>
-            <p className="mt-3 text-sm leading-6 text-white/60">Secret values are masked in the browser. Empty secret fields preserve the stored value.</p>
+            <p className="mt-3 text-sm leading-6 text-white/60">{labels.secretHandlingDescription}</p>
           </div>
           <div className="data-slab">
-            <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Sync model</div>
+            <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">{labels.syncModel}</div>
             <div className="mt-3 text-2xl text-white" style={{ fontFamily: "var(--font-display)" }}>
-              Auto every 10 min
+              {labels.syncModelValue}
             </div>
-            <p className="mt-3 text-sm leading-6 text-white/60">Manual refresh and the background cycle will pick up the new configuration after save.</p>
+            <p className="mt-3 text-sm leading-6 text-white/60">{labels.syncModelDescription}</p>
           </div>
         </div>
 
@@ -182,11 +207,11 @@ export function AdminIntegrationForm({ initialSettings }: AdminIntegrationFormPr
           {Object.entries(form.providers).map(([providerKey, provider]) => {
             const meta = providerMeta[providerKey] ?? {
               title: providerKey,
-              copy: "External integration.",
-              authMode: "Server-side integration",
-              visitorModel: "No visitor login",
-              requirements: "Configuration required",
-              notes: ["This integration is managed from the admin sanctum."],
+              copy: isPt ? "Integracao externa." : "External integration.",
+              authMode: labels.serverSideOnly,
+              visitorModel: labels.publicConsultation,
+              requirements: labels.requirements,
+              notes: [isPt ? "Esta integracao e gerenciada pelo sanctum admin." : "This integration is managed from the admin sanctum."],
             };
             const enabled = Boolean(provider.enabled);
             const configured = Boolean(provider.configured);
@@ -207,20 +232,20 @@ export function AdminIntegrationForm({ initialSettings }: AdminIntegrationFormPr
                       checked={enabled}
                       onChange={(event) => updateProvider(providerKey, "enabled", event.target.checked)}
                     />
-                    Enabled
+                    {labels.enabled}
                   </label>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
                   <span className={`rounded-full border px-3 py-1 text-[0.68rem] uppercase tracking-[0.18em] ${statusTone(enabled, configured)}`}>
-                    {!enabled ? "Disabled" : configured ? "Configured" : "Needs setup"}
+                    {!enabled ? copy.adminIntegrations.disabledState : configured ? labels.configured : labels.needsSetup}
                   </span>
                   <span className="rune-chip">{meta.visitorModel}</span>
                   <span className="rune-chip">{meta.authMode}</span>
                 </div>
 
                 <div className="rounded-[1.2rem] border border-white/10 bg-black/20 p-4">
-                  <div className="text-[0.66rem] uppercase tracking-[0.3em] text-gold/75">Requirements</div>
+                  <div className="text-[0.66rem] uppercase tracking-[0.3em] text-gold/75">{labels.requirements}</div>
                   <div className="mt-3 text-lg text-white" style={{ fontFamily: "var(--font-display)" }}>
                     {meta.requirements}
                   </div>
@@ -233,7 +258,7 @@ export function AdminIntegrationForm({ initialSettings }: AdminIntegrationFormPr
 
                 {"region" in provider ? (
                   <label className="block space-y-2">
-                    <span className="text-[0.68rem] uppercase tracking-[0.28em] text-gold/75">Region</span>
+                    <span className="text-[0.68rem] uppercase tracking-[0.28em] text-gold/75">{labels.region}</span>
                     <select
                       value={String(provider.region ?? "us")}
                       onChange={(event) => updateProvider(providerKey, "region", event.target.value)}
@@ -249,7 +274,7 @@ export function AdminIntegrationForm({ initialSettings }: AdminIntegrationFormPr
 
                 {"api_base_url" in provider ? (
                   <label className="block space-y-2">
-                    <span className="text-[0.68rem] uppercase tracking-[0.28em] text-gold/75">API base URL</span>
+                    <span className="text-[0.68rem] uppercase tracking-[0.28em] text-gold/75">{labels.apiBaseUrl}</span>
                     <input
                       value={String(provider.api_base_url ?? "")}
                       onChange={(event) => updateProvider(providerKey, "api_base_url", event.target.value)}
@@ -260,7 +285,7 @@ export function AdminIntegrationForm({ initialSettings }: AdminIntegrationFormPr
 
                 {"client_id" in provider ? (
                   <label className="block space-y-2">
-                    <span className="text-[0.68rem] uppercase tracking-[0.28em] text-gold/75">Client ID</span>
+                    <span className="text-[0.68rem] uppercase tracking-[0.28em] text-gold/75">{labels.clientId}</span>
                     <input
                       value={String(provider.client_id ?? "")}
                       onChange={(event) => updateProvider(providerKey, "client_id", event.target.value)}
@@ -272,11 +297,11 @@ export function AdminIntegrationForm({ initialSettings }: AdminIntegrationFormPr
                 {"client_secret" in provider ? (
                   <div className="space-y-3">
                     <label className="block space-y-2">
-                      <span className="text-[0.68rem] uppercase tracking-[0.28em] text-gold/75">Client secret</span>
+                      <span className="text-[0.68rem] uppercase tracking-[0.28em] text-gold/75">{labels.clientSecret}</span>
                       <input
                         type="password"
                         value={String(provider.client_secret ?? "")}
-                        placeholder={secretConfigured ? "Secret already stored" : "Paste a new secret"}
+                        placeholder={secretConfigured ? labels.secretAlreadyStored : labels.pasteNewSecret}
                         onChange={(event) => {
                           updateProvider(providerKey, "client_secret", event.target.value);
                           if (event.target.value) {
@@ -288,14 +313,14 @@ export function AdminIntegrationForm({ initialSettings }: AdminIntegrationFormPr
                     </label>
 
                     <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.18em] text-white/55">
-                      <span className="rune-pill">{secretConfigured ? "Secret configured" : "No secret stored"}</span>
+                      <span className="rune-pill">{secretConfigured ? labels.secretConfigured : labels.noSecretStored}</span>
                       <label className="flex items-center gap-2">
                         <input
                           type="checkbox"
                           checked={Boolean(provider.clear_client_secret)}
                           onChange={(event) => updateProvider(providerKey, "clear_client_secret", event.target.checked)}
                         />
-                        Clear stored secret
+                        {labels.clearStoredSecret}
                       </label>
                     </div>
                   </div>
@@ -307,16 +332,16 @@ export function AdminIntegrationForm({ initialSettings }: AdminIntegrationFormPr
       </div>
 
       <div className="panel panel-section">
-        <p className="eyebrow">Observability</p>
+        <p className="eyebrow">{labels.observabilityEyebrow}</p>
         <h2 className="mt-4 text-3xl text-white" style={{ fontFamily: "var(--font-display)" }}>
-          Logging controls
+          {labels.observabilityTitle}
         </h2>
         <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-[1.4rem] border border-white/10 bg-black/20 p-4">
           <div>
             <div className="text-xl text-white" style={{ fontFamily: "var(--font-display)" }}>
-              Request logging
+              {labels.requestLoggingTitle}
             </div>
-            <p className="mt-2 text-sm text-white/60">Records API calls into `AuditLog`, including request id, route, latency, and status.</p>
+            <p className="mt-2 text-sm text-white/60">{labels.requestLoggingDescription}</p>
           </div>
           <label className="flex items-center gap-3 text-sm text-white/80">
             <input
@@ -324,7 +349,7 @@ export function AdminIntegrationForm({ initialSettings }: AdminIntegrationFormPr
               checked={Boolean(form.feature_flags.request_logging)}
               onChange={(event) => updateFeatureFlag("request_logging", event.target.checked)}
             />
-            Enable request logs
+            {labels.enableRequestLogs}
           </label>
         </div>
       </div>

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function AdminLogoutButton({ label }: { label: string }) {
+export function AdminLogoutButton({ label, workingLabel }: { label: string; workingLabel: string }) {
   const router = useRouter();
   const [isWorking, setIsWorking] = useState(false);
 
@@ -21,7 +21,7 @@ export function AdminLogoutButton({ label }: { label: string }) {
       disabled={isWorking}
       className="nav-link disabled:cursor-not-allowed disabled:opacity-60"
     >
-      {isWorking ? "Leaving..." : label}
+      {isWorking ? workingLabel : label}
     </button>
   );
 }

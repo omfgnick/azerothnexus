@@ -5,14 +5,7 @@ import { ArchiveSigilIcon, IconFrame, SearchSigilIcon } from "@/components/nexus
 import { ScenePanel } from "@/components/scene-panel";
 import { SearchCommandPalette } from "@/components/search-command-palette";
 import { getSearchResults, isFallbackData } from "@/lib/api";
-
-const typeDescriptions: Record<string, string> = {
-  guild: "Guild profile and progression page",
-  character: "Character profile and performance page",
-  realm: "Realm-focused discovery result",
-  region: "Region-focused discovery result",
-  raid: "Raid discovery result"
-};
+import { getDictionary } from "@/lib/locale";
 
 type SearchPageProps = {
   searchParams?: {
@@ -34,6 +27,8 @@ function pillTone(type: string) {
 }
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
+  const { copy } = await getDictionary();
+  const labels = copy.searchPage;
   const query = searchParams?.q?.trim() ?? "";
   const region = searchParams?.region?.trim() ?? "";
   const realm = searchParams?.realm?.trim() ?? "";
@@ -48,19 +43,19 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     <div className="page-shell space-y-8">
       {query && isFallbackData(results) ? (
         <DataStateBanner
-          description="A busca publica nao respondeu a tempo. Os resultados abaixo estao em estado neutro enquanto a API nao retorna a leitura real."
+          title={copy.shared.publicDataUnavailable}
+          description={labels.bannerDescription}
           error={results._requestError}
+          detailLabel={copy.dataState.technicalDetail}
         />
       ) : null}
       <section className="grid gap-6 xl:grid-cols-[1.02fr_0.98fr]">
         <div className="panel panel-section-lg">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="eyebrow">Archive search</p>
-              <h1 className="mt-6 display-title text-[clamp(2.8rem,4.6vw,4.9rem)]">Search by name, realm, guild, or region through a proper scrying chamber.</h1>
-              <p className="mt-6 max-w-3xl lead-copy">
-                Query public guild and character pages with a presentation that feels ritualistic, premium, and unmistakably Azerothian instead of generic product chrome.
-              </p>
+              <p className="eyebrow">{labels.heroEyebrow}</p>
+              <h1 className="mt-6 display-title text-[clamp(2.8rem,4.6vw,4.9rem)]">{labels.heroTitle}</h1>
+              <p className="mt-6 max-w-3xl lead-copy">{labels.heroDescription}</p>
             </div>
             <IconFrame className="hidden h-16 w-16 rounded-[1.45rem] md:inline-flex" tone="arcane">
               <SearchSigilIcon className="h-8 w-8" />
@@ -70,9 +65,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         </div>
 
         <ScenePanel
-          eyebrow="Astral archive"
-          title="A search chamber built around maps, tomes, and rune-lit discovery."
-          description="The art gives the search surface a real sense of place, while the new sigils make it feel like a feature of Azeroth Nexus instead of a floating utility page."
+          eyebrow={labels.sceneEyebrow}
+          title={labels.sceneTitle}
+          description={labels.sceneDescription}
           imageSrc="/images/astral-archives-card.png"
           imageAlt="Mystical archive chamber with floating books, celestial maps, and blue arcane light."
           icon={
@@ -80,9 +75,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               <ArchiveSigilIcon className="h-8 w-8" />
             </IconFrame>
           }
-          badge={query ? "Runes aligned" : "Awaiting a query"}
+          badge={query ? labels.sceneBadgeActive : labels.sceneBadgeIdle}
           href="/rankings"
-          actionLabel="Survey the warboard"
+          actionLabel={labels.sceneAction}
         />
       </section>
 
@@ -90,20 +85,20 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         <div className="panel panel-section">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="eyebrow">Filter state</p>
+              <p className="eyebrow">{labels.filterEyebrow}</p>
               <h2 className="mt-4 text-3xl text-white" style={{ fontFamily: "var(--font-display)" }}>
-                Current attunement
+                {labels.filterTitle}
               </h2>
             </div>
-            <div className="rune-pill">{query ? "Runes aligned" : "Awaiting a query"}</div>
+            <div className="rune-pill">{query ? labels.aligned : labels.awaiting}</div>
           </div>
 
           <div className="mt-6 flex flex-wrap gap-2">
-            <span className="rune-chip">Query: {query || "none"}</span>
-            <span className="rune-chip">Region: {region || "all"}</span>
-            <span className="rune-chip">Realm: {realm || "any"}</span>
-            <span className="rune-chip">Guild: {guild || "any"}</span>
-            <span className="rune-chip">Type: {type}</span>
+            <span className="rune-chip">{labels.queryLabel}: {query || copy.shared.none}</span>
+            <span className="rune-chip">{labels.regionLabel}: {region || labels.all}</span>
+            <span className="rune-chip">{labels.realmLabel}: {realm || labels.any}</span>
+            <span className="rune-chip">{labels.guildLabel}: {guild || labels.any}</span>
+            <span className="rune-chip">{labels.typeLabel}: {type}</span>
           </div>
 
           <div className="mt-6 space-y-3">
@@ -115,7 +110,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                 </div>
               ))
             ) : (
-              <div className="data-slab text-sm text-white/60">Run a search to reveal grouped matches by entity type.</div>
+              <div className="data-slab text-sm text-white/60">{labels.groupPrompt}</div>
             )}
           </div>
         </div>
@@ -123,15 +118,15 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         <div className="panel panel-section">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="eyebrow">Public returns</p>
+              <p className="eyebrow">{labels.publicReturnsEyebrow}</p>
               <h2 className="mt-4 text-3xl text-white" style={{ fontFamily: "var(--font-display)" }}>
-                Search results
+                {labels.publicReturnsTitle}
               </h2>
               <p className="mt-3 text-sm text-white/60">
-                {results.total_results} matching result{results.total_results === 1 ? "" : "s"} found in the current public scan.
+                {results.total_results} {results.total_results === 1 ? labels.matchingResult : labels.matchingResults}
               </p>
             </div>
-            {query ? <div className="rune-pill">Live public lookup</div> : null}
+            {query ? <div className="rune-pill">{labels.liveLookup}</div> : null}
           </div>
 
           <div className="mt-6 space-y-3">
@@ -149,17 +144,17 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                   </div>
                   {item.subtitle ? <div className="mt-2 text-sm text-white/60">{item.subtitle}</div> : null}
                   <div className="mt-3 flex flex-wrap gap-2 text-xs uppercase tracking-[0.14em] text-white/45">
-                    {item.match_reason ? <span>Match: {item.match_reason}</span> : null}
-                    {item.region ? <span>Region: {item.region.toUpperCase()}</span> : null}
-                    {item.realm ? <span>Realm: {item.realm}</span> : null}
-                    {item.guild ? <span>Guild: {item.guild}</span> : null}
+                    {item.match_reason ? <span>{labels.matchLabel}: {item.match_reason}</span> : null}
+                    {item.region ? <span>{labels.regionInfo}: {item.region.toUpperCase()}</span> : null}
+                    {item.realm ? <span>{labels.realmInfo}: {item.realm}</span> : null}
+                    {item.guild ? <span>{labels.guildInfo}: {item.guild}</span> : null}
                   </div>
-                  <p className="mt-3 text-sm text-white/55">{typeDescriptions[item.type] ?? "Public search result"}</p>
+                  <p className="mt-3 text-sm text-white/55">{labels.typeDescriptions[item.type] ?? labels.genericResult}</p>
                 </Link>
               ))
             ) : (
               <div className="data-slab text-center text-white/60">
-                {query ? "No public results matched this search. Broaden the realm or guild filter and try another scry." : "Type a name, realm, region, or guild above to begin the scan."}
+                {query ? labels.noResults : labels.noQuery}
               </div>
             )}
           </div>

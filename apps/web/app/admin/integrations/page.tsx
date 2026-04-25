@@ -3,24 +3,7 @@ import { AdminRefreshAllButton } from "@/components/admin-refresh-all-button";
 import { DataStateBanner } from "@/components/data-state-banner";
 import { IconFrame, NexusCrestIcon, SearchSigilIcon, WarboardSigilIcon } from "@/components/nexus-icons";
 import { getAdminDashboard, getAdminIntegrations, isFallbackData } from "@/lib/api";
-
-const providerCopy: Record<string, { label: string; auth: string; requirements: string }> = {
-  blizzard: {
-    label: "Blizzard Battle.net",
-    auth: "Server-side OAuth app credentials",
-    requirements: "Client ID + Client Secret",
-  },
-  raiderio: {
-    label: "Raider.IO",
-    auth: "Public API",
-    requirements: "Base URL only",
-  },
-  warcraftlogs: {
-    label: "Warcraft Logs",
-    auth: "Server-side OAuth client credentials",
-    requirements: "Client ID + Client Secret",
-  },
-};
+import { getDictionary } from "@/lib/locale";
 
 function statusTone(enabled: boolean, configured: boolean) {
   if (!enabled) {
@@ -33,6 +16,8 @@ function statusTone(enabled: boolean, configured: boolean) {
 }
 
 export default async function AdminIntegrationsPage() {
+  const { copy } = await getDictionary();
+  const labels = copy.adminIntegrations;
   const [settings, dashboard] = await Promise.all([getAdminIntegrations(), getAdminDashboard()]);
   const providers = (dashboard.providers ?? []) as Array<Record<string, unknown>>;
   const visibleProviders = Object.keys(settings.providers ?? {}).length;
@@ -43,17 +28,18 @@ export default async function AdminIntegrationsPage() {
     <div className="space-y-8">
       {isFallbackData(settings) || isFallbackData(dashboard) ? (
         <DataStateBanner
-          title="Integracoes indisponiveis"
-          description="O painel nao conseguiu carregar toda a configuracao protegida nesta leitura. Isso nao revela segredos, mas indica falha no proxy admin ou token ausente no servidor web."
+          title={labels.bannerTitle}
+          description={labels.bannerDescription}
           error={settings._requestError ?? dashboard._requestError}
+          detailLabel={copy.dataState.technicalDetail}
         />
       ) : null}
       <section className="grid gap-5 md:grid-cols-4">
         {[
-          ["Providers visiveis", String(visibleProviders)],
-          ["Providers prontos", String(readyProviders)],
-          ["Request logging", settings.feature_flags?.request_logging ? "Ativo" : "Desligado"],
-          ["Auto refresh", autoRefreshStatus],
+          [labels.visibleProviders, String(visibleProviders)],
+          [labels.readyProviders, String(readyProviders)],
+          [labels.requestLogging, settings.feature_flags?.request_logging ? labels.active : labels.disabled],
+          [labels.autoRefresh, autoRefreshStatus],
         ].map(([title, value]) => (
           <div key={title} className="data-slab">
             <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">{title}</div>
@@ -71,9 +57,9 @@ export default async function AdminIntegrationsPage() {
           <div className="panel panel-section">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="eyebrow">Operational model</p>
+                <p className="eyebrow">{labels.operationalEyebrow}</p>
                 <h2 className="mt-4 text-3xl text-white" style={{ fontFamily: "var(--font-display)" }}>
-                  Public site, private operations
+                  {labels.operationalTitle}
                 </h2>
               </div>
               <IconFrame className="hidden h-14 w-14 rounded-[1.2rem] md:inline-flex" tone="gold">
@@ -83,24 +69,18 @@ export default async function AdminIntegrationsPage() {
 
             <div className="mt-6 grid gap-4">
               <div className="data-slab">
-                <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Visitor experience</div>
-                <p className="mt-3 text-sm leading-7 text-white/62">
-                  Visitors only search and consult. They never authenticate against Blizzard, Raider.IO, or Warcraft Logs through the browser.
-                </p>
+                <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">{labels.visitorExperience}</div>
+                <p className="mt-3 text-sm leading-7 text-white/62">{labels.visitorExperienceDescription}</p>
               </div>
               <div className="data-slab">
-                <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Credential model</div>
-                <p className="mt-3 text-sm leading-7 text-white/62">
-                  Secrets stay in the admin vault and are used only by server-side refresh jobs, manual admin refreshes, and the 10-minute sync cycle.
-                </p>
+                <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">{labels.credentialModel}</div>
+                <p className="mt-3 text-sm leading-7 text-white/62">{labels.credentialModelDescription}</p>
               </div>
               <div className="data-slab">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                   <div>
-                    <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Sync control</div>
-                    <p className="mt-3 text-sm leading-7 text-white/62">
-                      Save integration changes here, then trigger a refresh immediately or let the automatic cycle absorb the new configuration.
-                    </p>
+                    <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">{labels.syncControl}</div>
+                    <p className="mt-3 text-sm leading-7 text-white/62">{labels.syncControlDescription}</p>
                   </div>
                   <AdminRefreshAllButton />
                 </div>
@@ -111,9 +91,9 @@ export default async function AdminIntegrationsPage() {
           <div className="panel panel-section">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="eyebrow">Live provider health</p>
+                <p className="eyebrow">{labels.runtimeEyebrow}</p>
                 <h2 className="mt-4 text-3xl text-white" style={{ fontFamily: "var(--font-display)" }}>
-                  Runtime wards
+                  {labels.runtimeTitle}
                 </h2>
               </div>
               <IconFrame className="hidden h-14 w-14 rounded-[1.2rem] md:inline-flex" tone="arcane">
@@ -125,10 +105,10 @@ export default async function AdminIntegrationsPage() {
               {providers.length ? (
                 providers.map((provider) => {
                   const key = String(provider.provider);
-                  const meta = providerCopy[key] ?? {
+                  const meta = labels.providerLabels[key] ?? {
                     label: key,
-                    auth: "Server-side integration",
-                    requirements: "Configuration required",
+                    auth: copy.adminComponents.serverSideOnly,
+                    requirements: copy.adminComponents.requirements,
                   };
                   const enabled = Boolean(provider.enabled ?? true);
                   const configured = Boolean(provider.configured);
@@ -141,18 +121,18 @@ export default async function AdminIntegrationsPage() {
                               {meta.label}
                             </div>
                             <div className="mt-2 text-sm text-white/60">
-                              {configured ? "Ready for sync" : enabled ? "Enabled but missing setup" : "Disabled"}
+                              {configured ? labels.readyForSync : enabled ? labels.enabledMissingSetup : labels.disabledProvider}
                             </div>
                           </div>
                           <div className={`rounded-full border px-3 py-1 text-[0.68rem] uppercase tracking-[0.18em] ${statusTone(enabled, configured)}`}>
-                            {!enabled ? "Disabled" : configured ? "Ready" : "Needs setup"}
+                            {!enabled ? labels.disabledState : configured ? labels.readyState : labels.needsSetupState}
                           </div>
                         </div>
 
                         <div className="flex flex-wrap gap-2">
                           <span className="rune-chip">{meta.auth}</span>
                           <span className="rune-chip">{meta.requirements}</span>
-                          {"region" in provider && provider.region ? <span className="rune-chip">Region {String(provider.region).toUpperCase()}</span> : null}
+                          {"region" in provider && provider.region ? <span className="rune-chip">{labels.region} {String(provider.region).toUpperCase()}</span> : null}
                           {"base_url" in provider && provider.base_url ? <span className="rune-chip">{String(provider.base_url)}</span> : null}
                           {"api_base" in provider && provider.api_base ? <span className="rune-chip">{String(provider.api_base)}</span> : null}
                         </div>
@@ -162,7 +142,7 @@ export default async function AdminIntegrationsPage() {
                 })
               ) : (
                 <div className="data-slab">
-                  <p className="text-sm leading-7 text-white/62">Provider health is unavailable right now. Check `ADMIN_API_TOKEN` in the web environment.</p>
+                  <p className="text-sm leading-7 text-white/62">{labels.unavailableProviderHealth}</p>
                 </div>
               )}
             </div>
@@ -171,9 +151,9 @@ export default async function AdminIntegrationsPage() {
           <div className="panel panel-section">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="eyebrow">Recent pressure</p>
+                <p className="eyebrow">{labels.postureEyebrow}</p>
                 <h2 className="mt-4 text-3xl text-white" style={{ fontFamily: "var(--font-display)" }}>
-                  Sync posture
+                  {labels.postureTitle}
                 </h2>
               </div>
               <IconFrame className="hidden h-14 w-14 rounded-[1.2rem] md:inline-flex" tone="gold">
@@ -183,31 +163,28 @@ export default async function AdminIntegrationsPage() {
 
             <div className="mt-6 space-y-4">
               <div className="data-slab">
-                <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Auto refresh cadence</div>
+                <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">{labels.autoRefreshCadence}</div>
                 <div className="mt-3 text-2xl text-white" style={{ fontFamily: "var(--font-display)" }}>
-                  Every {Math.max(1, Math.round(Number(dashboard.auto_refresh?.interval_seconds ?? 600) / 60))} minutes
+                  {Math.max(1, Math.round(Number(dashboard.auto_refresh?.interval_seconds ?? 600) / 60))} min
                 </div>
                 <p className="mt-3 text-sm leading-7 text-white/60">
-                  Latest cycle status: {autoRefreshStatus}. Latest cycle at: {dashboard.auto_refresh?.latest_cycle_at ?? "unknown"}.
+                  {labels.latestCycleStatus}: {autoRefreshStatus}. {labels.latestCycleAt}: {dashboard.auto_refresh?.latest_cycle_at ?? copy.shared.unknown}.
                 </p>
               </div>
 
               {dashboard.auto_refresh?.last_error_payload ? (
                 <div className="data-slab border-rose-400/20">
-                  <div className="text-[0.66rem] uppercase tracking-[0.34em] text-rose-200/80">Latest auto-refresh error</div>
+                  <div className="text-[0.66rem] uppercase tracking-[0.34em] text-rose-200/80">{labels.latestAutoRefreshError}</div>
                   <p className="mt-3 text-sm leading-7 text-white/62">
                     {JSON.stringify(dashboard.auto_refresh.last_error_payload)}
                   </p>
                 </div>
               ) : (
                 <div className="data-slab">
-                  <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Current posture</div>
-                  <p className="mt-3 text-sm leading-7 text-white/62">
-                    No recent auto-refresh error is recorded. Save integration changes here and use the manual refresh control above if you want immediate confirmation.
-                  </p>
+                  <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">{labels.currentPosture}</div>
+                  <p className="mt-3 text-sm leading-7 text-white/62">{labels.currentPostureDescription}</p>
                 </div>
               )}
-
             </div>
           </div>
         </div>

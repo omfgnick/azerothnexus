@@ -8,16 +8,10 @@ import { getActivityFeed, getGuildLadder, getMythicDashboard, getRaidDashboard, 
 import { getDictionary } from "@/lib/locale";
 
 function HomeSectionSkeleton({ height = "h-[320px]" }: { height?: string }) {
-  return (
-    <div className={`animate-pulse rounded-[24px] border border-white/8 bg-white/[0.03] ${height}`} />
-  );
+  return <div className={`animate-pulse rounded-[24px] border border-white/8 bg-white/[0.03] ${height}`} />;
 }
 
-async function HomeHeroSection({
-  copy,
-}: {
-  copy: Awaited<ReturnType<typeof getDictionary>>["copy"]["hero"];
-}) {
+async function HomeHeroSection({ copy }: { copy: Awaited<ReturnType<typeof getDictionary>>["copy"] }) {
   const [ladder, raid, mythic, activity] = await Promise.all([
     getGuildLadder(),
     getRaidDashboard(),
@@ -27,64 +21,64 @@ async function HomeHeroSection({
 
   const topGuild = ladder.entries?.[0];
   const hasFallback = [ladder, raid, mythic, activity].some(isFallbackData);
-  const metricDetails = copy.readings.slice(0, 4);
+  const metricDetails = copy.hero.readings.slice(0, 4);
   const metrics: HeroMetric[] = [
     {
       label: metricDetails[0]?.label ?? "Visible guilds",
       value: String(ladder.entries.length),
       detail: metricDetails[0]?.detail,
-      tone: "gold" as const,
+      tone: "gold",
     },
     {
       label: metricDetails[1]?.label ?? "Live events",
       value: String(activity.items.length),
       detail: metricDetails[1]?.detail,
-      tone: "cyan" as const,
+      tone: "cyan",
     },
     {
       label: metricDetails[2]?.label ?? "Raid bosses",
       value: String(raid.bosses.length),
       detail: metricDetails[2]?.detail,
-      tone: "default" as const,
+      tone: "default",
     },
     {
-      label: metricDetails[3]?.label ?? "Data feed",
-      value: hasFallback ? "Fallback" : "Live",
+      label: metricDetails[3]?.label ?? "Feed state",
+      value: hasFallback ? copy.shared.fallback : copy.shared.live,
       detail: metricDetails[3]?.detail,
       tone: hasFallback ? "default" : "green",
     },
   ];
 
   const overview: HeroOverview = {
-    badge: hasFallback ? "Fallback" : "Live",
+    badge: hasFallback ? copy.shared.fallback : copy.shared.live,
     metrics: [
       {
-        label: copy.warboardLabel,
+        label: copy.hero.warboardLabel,
         value: topGuild ? topGuild.score.toFixed(1) : "--",
-        tone: "gold" as const,
+        tone: "gold",
       },
       {
-        label: copy.archiveLabel,
+        label: copy.hero.archiveLabel,
         value: mythic.meta_analysis?.timed_ratio ? `${mythic.meta_analysis.timed_ratio}%` : "--",
-        tone: "cyan" as const,
+        tone: "cyan",
       },
       {
-        label: "Top guild tier",
+        label: copy.home.topGuildTier,
         value: topGuild?.tier ?? "--",
-        tone: "default" as const,
+        tone: "default",
       },
       {
-        label: "Signal state",
-        value: hasFallback ? "Partial" : "Stable",
+        label: copy.home.signalState,
+        value: hasFallback ? copy.shared.partial : copy.shared.stable,
         tone: hasFallback ? "default" : "green",
       },
     ],
     details: [
-      { label: "Current raid", value: raid.raid?.name ?? "--", tone: "gold" as const },
-      { label: "Season", value: raid.raid?.season ?? "--" },
-      { label: "Mythic bosses tracked", value: String(raid.bosses.length) },
-      { label: "Most played route", value: mythic.meta_analysis?.most_played_dungeons?.[0] ?? "--", tone: "cyan" as const },
-      { label: "Feed events", value: String(activity.items.length) },
+      { label: copy.home.currentRaid, value: raid.raid?.name ?? "--", tone: "gold" },
+      { label: copy.home.season, value: raid.raid?.season ?? "--" },
+      { label: copy.home.mythicBossesTracked, value: String(raid.bosses.length) },
+      { label: copy.home.mostPlayedRoute, value: mythic.meta_analysis?.most_played_dungeons?.[0] ?? "--", tone: "cyan" },
+      { label: copy.home.eventsLabel, value: String(activity.items.length) },
     ],
   };
 
@@ -92,45 +86,47 @@ async function HomeHeroSection({
     <section className="space-y-5">
       {hasFallback ? (
         <DataStateBanner
-          title="Parte dos dados esta indisponivel"
-          description="Esta tela entrou em modo de contingencia. O layout continua operando, mas voce pode estar vendo dados vazios ou neutros enquanto a API se recompõe."
+          title={copy.home.dataBannerTitle}
+          description={copy.home.dataBannerDescription}
           error={[ladder, raid, mythic, activity].find(isFallbackData)?._requestError ?? null}
+          detailLabel={copy.dataState.technicalDetail}
         />
       ) : null}
-      <Hero copy={copy} metrics={metrics} overview={overview} />
+      <Hero copy={copy.hero} metrics={metrics} overview={overview} />
     </section>
   );
 }
 
-async function HomeRankingSection() {
+async function HomeRankingSection({ copy }: { copy: Awaited<ReturnType<typeof getDictionary>>["copy"] }) {
   const ladder = await getGuildLadder();
 
   return (
     <section className="space-y-5">
       {isFallbackData(ladder) ? (
         <DataStateBanner
-          title="Warboard em modo de contingencia"
-          description="Os rankings publicos nao responderam a tempo. O warboard continua acessivel, mas os dados reais ainda nao chegaram nesta leitura."
+          title={copy.home.rankingBannerTitle}
+          description={copy.home.rankingBannerDescription}
           error={ladder._requestError}
+          detailLabel={copy.dataState.technicalDetail}
         />
       ) : null}
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <div className="eyebrow">World rankings</div>
-          <h2 className="mt-4 section-title">Guild progression ladder</h2>
+        <div className="space-y-2">
+          <div className="eyebrow">{copy.home.rankingsEyebrow}</div>
+          <h2 className="section-title">{copy.home.rankingsTitle}</h2>
         </div>
         <Link href="/rankings" className="arcane-button-secondary">
-          Open full warboard
+          {copy.home.openWarboard}
         </Link>
       </div>
 
-      <RankingTable title="Guild Progression Ladder" entries={ladder.entries} />
+      <RankingTable title={copy.home.rankingsTitle} entries={ladder.entries} labels={copy.rankingTable} />
     </section>
   );
 }
 
-async function HomeIntelligenceSection() {
+async function HomeIntelligenceSection({ copy }: { copy: Awaited<ReturnType<typeof getDictionary>>["copy"] }) {
   const [activity, mythic, raid] = await Promise.all([
     getActivityFeed(),
     getMythicDashboard(),
@@ -144,18 +140,26 @@ async function HomeIntelligenceSection() {
     <section className="space-y-5">
       {hasFallback ? (
         <DataStateBanner
-          title="Inteligencia parcial"
-          description="A camada de feed e meta nao conseguiu preencher todos os paineis. O Nexus mostra estados seguros e neutros ate a proxima sincronizacao."
+          title={copy.home.intelligenceBannerTitle}
+          description={copy.home.intelligenceBannerDescription}
           error={[activity, mythic, raid].find(isFallbackData)?._requestError ?? null}
+          detailLabel={copy.dataState.technicalDetail}
         />
       ) : null}
+
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="space-y-2">
+          <div className="eyebrow">{copy.home.intelligenceEyebrow}</div>
+          <h2 className="section-title">{copy.home.intelligenceTitle}</h2>
+        </div>
+      </div>
 
       <div className="grid gap-6 xl:grid-cols-3">
         <div className="rounded-[24px] border border-white/8 bg-[linear-gradient(180deg,rgba(14,22,40,0.98),rgba(8,13,24,0.98))] p-5 shadow-[0_24px_60px_rgba(0,0,0,0.32)]">
           <div className="flex items-center justify-between gap-4">
-            <div className="text-[0.72rem] uppercase tracking-[0.24em] text-gold/75">Activity feed</div>
+            <div className="text-[0.72rem] uppercase tracking-[0.24em] text-gold/75">{copy.home.activityFeed}</div>
             <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[0.66rem] uppercase tracking-[0.16em] text-white/55">
-              {activity.items.length} events
+              {activity.items.length} {copy.home.eventsLabel}
             </div>
           </div>
 
@@ -174,7 +178,7 @@ async function HomeIntelligenceSection() {
               ))
             ) : (
               <div className="rounded-[16px] border border-dashed border-white/12 bg-black/20 px-4 py-5 text-sm text-white/55">
-                No public activity events are available right now.
+                {copy.home.noActivity}
               </div>
             )}
           </div>
@@ -182,9 +186,9 @@ async function HomeIntelligenceSection() {
 
         <div className="rounded-[24px] border border-white/8 bg-[linear-gradient(180deg,rgba(14,22,40,0.98),rgba(8,13,24,0.98))] p-5 shadow-[0_24px_60px_rgba(0,0,0,0.32)]">
           <div className="flex items-center justify-between gap-4">
-            <div className="text-[0.72rem] uppercase tracking-[0.24em] text-sky-100/80">Mythic+ meta</div>
+            <div className="text-[0.72rem] uppercase tracking-[0.24em] text-sky-100/80">{copy.home.mythicMeta}</div>
             <div className="rounded-full border border-sky-300/14 bg-sky-500/10 px-3 py-1 text-[0.66rem] uppercase tracking-[0.16em] text-sky-100/80">
-              {mythic.meta_analysis?.timed_ratio ? `${mythic.meta_analysis.timed_ratio}% timed` : "--"}
+              {mythic.meta_analysis?.timed_ratio ? `${mythic.meta_analysis.timed_ratio}% ${copy.home.timedSuffix}` : "--"}
             </div>
           </div>
 
@@ -208,7 +212,7 @@ async function HomeIntelligenceSection() {
               ))
             ) : (
               <div className="rounded-[16px] border border-dashed border-white/12 bg-black/20 px-4 py-5 text-sm text-white/55">
-                Mythic+ route data is not available right now.
+                {copy.home.noMythicRoutes}
               </div>
             )}
           </div>
@@ -216,7 +220,7 @@ async function HomeIntelligenceSection() {
 
         <div className="rounded-[24px] border border-white/8 bg-[linear-gradient(180deg,rgba(14,22,40,0.98),rgba(8,13,24,0.98))] p-5 shadow-[0_24px_60px_rgba(0,0,0,0.32)]">
           <div className="flex items-center justify-between gap-4">
-            <div className="text-[0.72rem] uppercase tracking-[0.24em] text-gold/75">Season watch</div>
+            <div className="text-[0.72rem] uppercase tracking-[0.24em] text-gold/75">{copy.home.seasonWatch}</div>
             <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[0.66rem] uppercase tracking-[0.16em] text-white/55">
               {raid.raid?.season ?? "--"}
             </div>
@@ -224,16 +228,14 @@ async function HomeIntelligenceSection() {
 
           <div className="mt-5 rounded-[18px] border border-white/8 bg-black/20 px-4 py-3">
             {[
-              ["Current raid", raid.raid?.name ?? "--"],
-              ["Bosses visible", String(raid.bosses.length)],
-              ["World tracker", String((raid.world_first_tracker ?? []).length)],
-              ["Heatmap ready", raid.heatmap_ready ? "Yes" : "No"],
+              [copy.home.currentRaid, raid.raid?.name ?? "--"],
+              [copy.home.bossesVisible, String(raid.bosses.length)],
+              [copy.home.worldTracker, String((raid.world_first_tracker ?? []).length)],
+              [copy.home.heatmapReady, raid.heatmap_ready ? copy.shared.yes : copy.shared.no],
             ].map(([label, value], index, rows) => (
               <div
                 key={label}
-                className={`flex items-center justify-between gap-4 py-3 ${
-                  index < rows.length - 1 ? "border-b border-white/8" : ""
-                }`}
+                className={`flex items-center justify-between gap-4 py-3 ${index < rows.length - 1 ? "border-b border-white/8" : ""}`}
               >
                 <span className="text-sm text-white/55">{label}</span>
                 <span className="text-sm font-semibold text-white">{value}</span>
@@ -243,12 +245,36 @@ async function HomeIntelligenceSection() {
 
           <div className="mt-5 flex flex-wrap gap-3">
             <Link href="/search" className="arcane-button">
-              Search archive
+              {copy.home.searchArchive}
             </Link>
             <Link href="/compare" className="arcane-button-secondary">
-              Compare entities
+              {copy.home.compareEntities}
             </Link>
           </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function HomeCtaSection({ copy }: { copy: Awaited<ReturnType<typeof getDictionary>>["copy"] }) {
+  return (
+    <section className="rounded-[26px] border border-white/8 bg-[linear-gradient(180deg,rgba(14,22,40,0.96),rgba(8,13,24,0.98))] px-5 py-6 shadow-[0_28px_64px_rgba(0,0,0,0.36)] sm:px-7 sm:py-7">
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <h2 className="text-[1.5rem] text-white sm:text-[1.9rem]" style={{ fontFamily: "var(--font-display)" }}>
+            {copy.home.ctaTitle}
+          </h2>
+          <p className="mt-3 max-w-3xl text-sm leading-7 text-white/60 sm:text-base">{copy.home.ctaDescription}</p>
+        </div>
+
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Link href="/compare" className="arcane-button">
+            {copy.home.openCompare}
+          </Link>
+          <Link href="/admin" className="arcane-button-secondary">
+            {copy.home.adminPanel}
+          </Link>
         </div>
       </div>
     </section>
@@ -261,16 +287,18 @@ export default async function HomePage() {
   return (
     <div className="page-shell space-y-12">
       <Suspense fallback={<HomeSectionSkeleton height="h-[420px]" />}>
-        <HomeHeroSection copy={copy.hero} />
+        <HomeHeroSection copy={copy} />
       </Suspense>
 
       <Suspense fallback={<HomeSectionSkeleton height="h-[520px]" />}>
-        <HomeRankingSection />
+        <HomeRankingSection copy={copy} />
       </Suspense>
 
       <Suspense fallback={<HomeSectionSkeleton height="h-[360px]" />}>
-        <HomeIntelligenceSection />
+        <HomeIntelligenceSection copy={copy} />
       </Suspense>
+
+      <HomeCtaSection copy={copy} />
     </div>
   );
 }

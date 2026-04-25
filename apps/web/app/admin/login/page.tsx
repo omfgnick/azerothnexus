@@ -9,7 +9,7 @@ export default async function AdminLoginPage({
   searchParams: Promise<{ next?: string }>;
 }) {
   const resolved = await searchParams;
-  const { locale, copy } = await getDictionary();
+  const { copy } = await getDictionary();
 
   return (
     <div className="page-shell space-y-8">
@@ -33,6 +33,10 @@ export default async function AdminLoginPage({
                 username: copy.admin.loginUsername,
                 password: copy.admin.loginPassword,
                 submit: copy.admin.loginButton,
+                entering: copy.admin.entering,
+                invalid: copy.admin.loginInvalid,
+                unavailable: copy.admin.loginUnavailable,
+                genericError: copy.admin.loginFailed,
               }}
             />
           </div>
@@ -40,16 +44,8 @@ export default async function AdminLoginPage({
 
         <ScenePanel
           eyebrow={copy.admin.loginEyebrow}
-          title={
-            locale === "pt-BR"
-              ? "Um portal dedicado para operadores, backups, logs e integracoes."
-              : "A dedicated entry gate for operators, backups, logs, and integrations."
-          }
-          description={
-            locale === "pt-BR"
-              ? "Esta entrada prepara a transicao do modelo so com token para um acesso admin realmente protegido."
-              : "This login surface prepares the shift from token-only ops to a proper protected admin entrypoint for the sanctum."
-          }
+          title={copy.admin.loginSceneTitle}
+          description={copy.admin.loginSceneDescription}
           imageSrc="/images/admin-ops-scene.png"
           imageAlt="A luminous operations gate inside a Warcraft-inspired arcane command chamber."
           icon={
@@ -57,7 +53,7 @@ export default async function AdminLoginPage({
               <NexusCrestIcon className="h-8 w-8" />
             </IconFrame>
           }
-          badge={locale === "pt-BR" ? "Login admin" : "Admin login"}
+          badge={copy.admin.loginSceneBadge}
           priority
         />
       </section>

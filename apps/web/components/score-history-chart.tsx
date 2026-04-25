@@ -8,6 +8,14 @@ type Point = {
   confidence?: number | null;
 };
 
+type ScoreHistoryChartLabels = {
+  eyebrow: string;
+  description: string;
+  latestReading: string;
+  snapshot: string;
+  empty: string;
+};
+
 function buildCoordinates(points: Point[], width: number, height: number, pad: number) {
   if (!points.length) return [];
 
@@ -33,7 +41,17 @@ function buildAreaPath(coordinates: Array<{ x: number; y: number }>, height: num
   return `M ${first.x} ${height - pad} ${segments} L ${last.x} ${height - pad} Z`;
 }
 
-export function ScoreHistoryChart({ title, points }: { title: string; points: Point[] }) {
+export function ScoreHistoryChart({
+  title,
+  points,
+  labels,
+  locale = "en",
+}: {
+  title: string;
+  points: Point[];
+  labels: ScoreHistoryChartLabels;
+  locale?: string;
+}) {
   const width = 720;
   const height = 220;
   const pad = 20;
@@ -47,11 +65,11 @@ export function ScoreHistoryChart({ title, points }: { title: string; points: Po
     <section className="panel panel-section">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="eyebrow">Temporal trace</p>
+          <p className="eyebrow">{labels.eyebrow}</p>
           <h2 className="mt-4 section-title">{title}</h2>
-          <p className="mt-3 text-sm text-white/60">A rune-lit reading of recent score movement across captured snapshots.</p>
+          <p className="mt-3 text-sm text-white/60">{labels.description}</p>
         </div>
-        {points.length ? <div className="rune-pill">Latest reading {points[points.length - 1].score.toFixed(1)}</div> : null}
+        {points.length ? <div className="rune-pill">{labels.latestReading} {points[points.length - 1].score.toFixed(1)}</div> : null}
       </div>
 
       <div className="mt-6 overflow-hidden rounded-[1.5rem] border border-white/10 bg-black/25 p-3 sm:rounded-[1.8rem] sm:p-4">
@@ -110,18 +128,18 @@ export function ScoreHistoryChart({ title, points }: { title: string; points: Po
             <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               {points.map((point, index) => (
                 <div key={`${point.captured_at}-${index}-meta`} className="data-slab">
-                  <div className="text-[0.66rem] uppercase tracking-[0.32em] text-gold/75">Snapshot {index + 1}</div>
+                  <div className="text-[0.66rem] uppercase tracking-[0.32em] text-gold/75">{labels.snapshot} {index + 1}</div>
                   <div className="mt-3 text-2xl text-white" style={{ fontFamily: "var(--font-display)" }}>
                     {point.score.toFixed(1)}
                   </div>
-                  <div className="mt-2 text-sm text-white/55">{new Date(point.captured_at).toLocaleDateString()}</div>
+                  <div className="mt-2 text-sm text-white/55">{new Date(point.captured_at).toLocaleDateString(locale)}</div>
                 </div>
               ))}
             </div>
           </>
         ) : (
           <div className="rounded-[1.4rem] border border-dashed border-white/12 bg-black/20 px-4 py-8 text-sm text-white/55">
-            No captured score history is available for this entity yet.
+            {labels.empty}
           </div>
         )}
       </div>

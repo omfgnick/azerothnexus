@@ -1,5 +1,6 @@
 import "./globals.css";
 import { ReactNode } from "react";
+import { LocaleProvider } from "@/components/locale-provider";
 import { SiteShell } from "@/components/site-shell";
 import { getDictionary } from "@/lib/locale";
 
@@ -14,9 +15,11 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   return (
     <html lang={locale}>
       <body>
-        <SiteShell locale={locale} copy={copy.shell}>
-          {children}
-        </SiteShell>
+        <LocaleProvider locale={locale} copy={copy}>
+          <SiteShell locale={locale} copy={copy.shell}>
+            {children}
+          </SiteShell>
+        </LocaleProvider>
       </body>
     </html>
   );

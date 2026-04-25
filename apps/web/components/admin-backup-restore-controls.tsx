@@ -3,11 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
+import { useLocaleCopy } from "@/components/locale-provider";
+
 type AdminBackupRestoreControlsProps = {
   filename: string;
 };
 
 export function AdminBackupRestoreControls({ filename }: AdminBackupRestoreControlsProps) {
+  const { copy } = useLocaleCopy();
+  const labels = copy.adminComponents;
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isWorking, setIsWorking] = useState(false);
@@ -17,7 +21,7 @@ export function AdminBackupRestoreControls({ filename }: AdminBackupRestoreContr
   const [error, setError] = useState<string | null>(null);
 
   async function handleRestore() {
-    const confirmed = window.confirm(`Restore backup "${filename}"? This can replace current data.`);
+    const confirmed = window.confirm(`${labels.restoreConfirm}\n\n${filename}`);
     if (!confirmed) {
       return;
     }
@@ -41,14 +45,14 @@ export function AdminBackupRestoreControls({ filename }: AdminBackupRestoreContr
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {
       setIsWorking(false);
-      setError(payload?.detail || payload?.error || "Restore failed.");
+      setError(payload?.detail || payload?.error || labels.restoreError);
       return;
     }
 
     setMessage(
       payload?.safety_backup?.filename
-        ? `Restore complete. Safety backup: ${payload.safety_backup.filename}`
-        : "Restore complete.",
+        ? `${labels.restoreComplete} ${payload.safety_backup.filename}`
+        : labels.restoreComplete,
     );
     startTransition(() => {
       router.refresh();
@@ -61,7 +65,7 @@ export function AdminBackupRestoreControls({ filename }: AdminBackupRestoreContr
       <div className="flex flex-wrap gap-4 text-xs uppercase tracking-[0.16em] text-white/55">
         <label className="flex items-center gap-2">
           <input type="checkbox" checked={replaceExisting} onChange={(event) => setReplaceExisting(event.target.checked)} />
-          Replace current data
+          {labels.replaceCurrentData}
         </label>
         <label className="flex items-center gap-2">
           <input
@@ -69,7 +73,7 @@ export function AdminBackupRestoreControls({ filename }: AdminBackupRestoreContr
             checked={createBackupBeforeRestore}
             onChange={(event) => setCreateBackupBeforeRestore(event.target.checked)}
           />
-          Create safety backup first
+          {labels.createSafetyBackup}
         </label>
       </div>
 
@@ -80,10 +84,10 @@ export function AdminBackupRestoreControls({ filename }: AdminBackupRestoreContr
           disabled={isPending || isWorking}
           className="arcane-button min-h-[46px] px-5 py-3 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isPending || isWorking ? "Restoring..." : "Restore backup"}
+          {isPending || isWorking ? labels.restoreWorking : labels.restoreButton}
         </button>
         <a href={`/api/admin/backups/${encodeURIComponent(filename)}`} className="arcane-button-secondary min-h-[46px] px-5 py-3">
-          Download backup
+          {labels.downloadBackup}
         </a>
       </div>
 

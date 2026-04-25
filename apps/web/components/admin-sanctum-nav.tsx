@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { useLocaleCopy } from "@/components/locale-provider";
 import { AdminLogoutButton } from "@/components/admin-logout-button";
 import {
   CompareSigilIcon,
@@ -24,6 +25,7 @@ type AdminSanctumNavProps = {
 };
 
 export function AdminSanctumNav({ labels }: AdminSanctumNavProps) {
+  const { copy } = useLocaleCopy();
   const pathname = usePathname();
   const links = [
     { href: "/admin", label: labels.overview, icon: NexusCrestIcon },
@@ -53,7 +55,7 @@ export function AdminSanctumNav({ labels }: AdminSanctumNavProps) {
           <WarboardSigilIcon className="h-4 w-4 text-gold/80" />
           {labels.controls}
         </div>
-        <AdminLogoutButton label={labels.logout} />
+        <AdminLogoutButton label={labels.logout} workingLabel={copy.adminComponents.logoutWorking} />
       </div>
     </nav>
   );

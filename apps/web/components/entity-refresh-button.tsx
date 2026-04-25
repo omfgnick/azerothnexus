@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
+import { useLocaleCopy } from "@/components/locale-provider";
+
 type EntityRefreshButtonProps = {
   entityType: "guild" | "character";
   region: string;
@@ -12,6 +14,8 @@ type EntityRefreshButtonProps = {
 };
 
 export function EntityRefreshButton({ entityType, region, realm, name, pathName }: EntityRefreshButtonProps) {
+  const { copy } = useLocaleCopy();
+  const labels = copy.adminComponents;
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
@@ -35,11 +39,11 @@ export function EntityRefreshButton({ entityType, region, realm, name, pathName 
 
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {
-      setError(payload?.detail || payload?.error || "Refresh failed.");
+      setError(payload?.detail || payload?.error || labels.entityRefreshError);
       return;
     }
 
-    setMessage(payload?.external_refresh_performed ? "Dados atualizados pelos providers." : "Snapshots locais recompostos.");
+    setMessage(payload?.external_refresh_performed ? labels.entityRefreshProviders : labels.entityRefreshSnapshots);
     startTransition(() => {
       router.refresh();
     });
@@ -53,7 +57,7 @@ export function EntityRefreshButton({ entityType, region, realm, name, pathName 
         disabled={isPending}
         className="arcane-button-secondary min-h-[44px] px-4 py-3 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {isPending ? "Atualizando..." : "Atualizar dados"}
+        {isPending ? labels.entityRefreshWorking : labels.entityRefreshButton}
       </button>
       {message ? <p className="text-xs uppercase tracking-[0.16em] text-emerald-200/80">{message}</p> : null}
       {error ? <p className="text-xs uppercase tracking-[0.16em] text-rose-200/80">{error}</p> : null}

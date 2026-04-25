@@ -3,7 +3,11 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
+import { useLocaleCopy } from "@/components/locale-provider";
+
 export function AdminRefreshAllButton() {
+  const { copy } = useLocaleCopy();
+  const labels = copy.adminComponents;
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isWorking, setIsWorking] = useState(false);
@@ -21,14 +25,14 @@ export function AdminRefreshAllButton() {
 
     const payload = await response.json().catch(() => ({}));
     if (!response.ok) {
-      setError(payload?.detail || payload?.error || "Falha ao atualizar entidades rastreadas.");
+      setError(payload?.detail || payload?.error || labels.refreshAllError);
       setIsWorking(false);
       return;
     }
 
     const guilds = Number(payload?.refreshed?.guilds ?? 0);
     const characters = Number(payload?.refreshed?.characters ?? 0);
-    setMessage(`Refresh concluido: ${guilds} guilds e ${characters} personagens.`);
+    setMessage(`${labels.refreshAllSuccess}: ${guilds} ${labels.guildCountLabel} / ${characters} ${labels.characterCountLabel}.`);
     startTransition(() => {
       router.refresh();
       setIsWorking(false);
@@ -43,7 +47,7 @@ export function AdminRefreshAllButton() {
         disabled={isPending || isWorking}
         className="arcane-button-secondary min-h-[48px] px-6 py-3 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {isPending || isWorking ? "Sincronizando..." : "Atualizar tudo agora"}
+        {isPending || isWorking ? labels.refreshAllWorking : labels.refreshAllButton}
       </button>
       {message ? <p className="text-xs uppercase tracking-[0.16em] text-emerald-200/80">{message}</p> : null}
       {error ? <p className="text-xs uppercase tracking-[0.16em] text-rose-200/80">{error}</p> : null}
