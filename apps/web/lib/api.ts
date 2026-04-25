@@ -1,16 +1,53 @@
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const PUBLIC_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const FETCH_TIMEOUT_MS = 8000;
 
-async function safeFetch<T>(path: string, fallback: T): Promise<T> {
+function normalizeBaseUrl(value: string) {
+  return value.replace(/\/$/, "");
+}
+
+function isAbsoluteUrl(value: string) {
+  return /^https?:\/\//.test(value);
+}
+
+function resolveApiBaseUrl() {
+  if (typeof window === "undefined") {
+    return resolveInternalApiBaseUrl();
+  }
+
+  return normalizeBaseUrl(PUBLIC_API_BASE_URL);
+}
+
+async function fetchJsonWithFallback<T>(
+  path: string,
+  fallback: T,
+  init?: RequestInit & {
+    next?: {
+      revalidate?: number;
+    };
+  }
+): Promise<T> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
   try {
-    const response = await fetch(`${API_BASE_URL}${path}`, {
-      next: { revalidate: 60 }
+    const response = await fetch(`${resolveApiBaseUrl()}${path}`, {
+      ...init,
+      signal: controller.signal
     });
     if (!response.ok) return fallback;
     return (await response.json()) as T;
   } catch {
     return fallback;
+  } finally {
+    clearTimeout(timeout);
   }
+}
+
+async function safeFetch<T>(path: string, fallback: T): Promise<T> {
+  return fetchJsonWithFallback(path, fallback, {
+    next: { revalidate: 60 }
+  });
 }
 
 export async function getGuildLadder() {
@@ -439,8 +476,8 @@ export function resolveInternalApiBaseUrl() {
   ];
 
   for (const candidate of candidates) {
-    if (candidate && /^https?:\/\//.test(candidate)) {
-      return candidate.replace(/\/$/, "");
+    if (candidate && isAbsoluteUrl(candidate)) {
+      return normalizeBaseUrl(candidate);
     }
   }
 
