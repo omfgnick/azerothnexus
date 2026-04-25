@@ -55,67 +55,75 @@ export function ScoreHistoryChart({ title, points }: { title: string; points: Po
       </div>
 
       <div className="mt-6 overflow-hidden rounded-[1.5rem] border border-white/10 bg-black/25 p-3 sm:rounded-[1.8rem] sm:p-4">
-        <svg viewBox={`0 0 ${width} ${height}`} className="h-44 w-full sm:h-56" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id={gradientId} x1="0" x2="1" y1="0" y2="0">
-              <stop offset="0%" stopColor="rgba(214,190,144,0.98)" />
-              <stop offset="55%" stopColor="rgba(110,203,255,0.95)" />
-              <stop offset="100%" stopColor="rgba(122,104,255,0.95)" />
-            </linearGradient>
-            <linearGradient id={areaId} x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="rgba(110,203,255,0.26)" />
-              <stop offset="100%" stopColor="rgba(110,203,255,0)" />
-            </linearGradient>
-          </defs>
+        {points.length ? (
+          <>
+            <svg viewBox={`0 0 ${width} ${height}`} className="h-44 w-full sm:h-56" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id={gradientId} x1="0" x2="1" y1="0" y2="0">
+                  <stop offset="0%" stopColor="rgba(214,190,144,0.98)" />
+                  <stop offset="55%" stopColor="rgba(110,203,255,0.95)" />
+                  <stop offset="100%" stopColor="rgba(122,104,255,0.95)" />
+                </linearGradient>
+                <linearGradient id={areaId} x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stopColor="rgba(110,203,255,0.26)" />
+                  <stop offset="100%" stopColor="rgba(110,203,255,0)" />
+                </linearGradient>
+              </defs>
 
-          {[0.2, 0.4, 0.6, 0.8].map((ratio) => (
-            <line
-              key={ratio}
-              x1={pad}
-              x2={width - pad}
-              y1={pad + (height - pad * 2) * ratio}
-              y2={pad + (height - pad * 2) * ratio}
-              stroke="rgba(255,255,255,0.08)"
-              strokeDasharray="5 7"
-            />
-          ))}
+              {[0.2, 0.4, 0.6, 0.8].map((ratio) => (
+                <line
+                  key={ratio}
+                  x1={pad}
+                  x2={width - pad}
+                  y1={pad + (height - pad * 2) * ratio}
+                  y2={pad + (height - pad * 2) * ratio}
+                  stroke="rgba(255,255,255,0.08)"
+                  strokeDasharray="5 7"
+                />
+              ))}
 
-          {coordinates.map(({ x }, index) => (
-            <line
-              key={`column-${index}`}
-              x1={x}
-              x2={x}
-              y1={pad}
-              y2={height - pad}
-              stroke="rgba(255,255,255,0.03)"
-            />
-          ))}
+              {coordinates.map(({ x }, index) => (
+                <line
+                  key={`column-${index}`}
+                  x1={x}
+                  x2={x}
+                  y1={pad}
+                  y2={height - pad}
+                  stroke="rgba(255,255,255,0.03)"
+                />
+              ))}
 
-          {areaPath ? <path d={areaPath} fill={`url(#${areaId})`} /> : null}
-          {polyline ? <polyline fill="none" stroke={`url(#${gradientId})`} strokeWidth="4" points={polyline} strokeLinecap="round" strokeLinejoin="round" /> : null}
+              {areaPath ? <path d={areaPath} fill={`url(#${areaId})`} /> : null}
+              {polyline ? <polyline fill="none" stroke={`url(#${gradientId})`} strokeWidth="4" points={polyline} strokeLinecap="round" strokeLinejoin="round" /> : null}
 
-          {coordinates.map(({ point, x, y }, index) => (
-            <g key={`${point.captured_at}-${index}`}>
-              <circle cx={x} cy={y} r="10" fill="rgba(110,203,255,0.08)" />
-              <circle cx={x} cy={y} r="4.5" fill="rgba(214,190,144,1)" />
-              <text x={x} y={y - 12} textAnchor="middle" fontSize="11" fill="rgba(255,255,255,0.78)">
-                {point.score.toFixed(1)}
-              </text>
-            </g>
-          ))}
-        </svg>
+              {coordinates.map(({ point, x, y }, index) => (
+                <g key={`${point.captured_at}-${index}`}>
+                  <circle cx={x} cy={y} r="10" fill="rgba(110,203,255,0.08)" />
+                  <circle cx={x} cy={y} r="4.5" fill="rgba(214,190,144,1)" />
+                  <text x={x} y={y - 12} textAnchor="middle" fontSize="11" fill="rgba(255,255,255,0.78)">
+                    {point.score.toFixed(1)}
+                  </text>
+                </g>
+              ))}
+            </svg>
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {points.map((point, index) => (
-            <div key={`${point.captured_at}-${index}-meta`} className="data-slab">
-              <div className="text-[0.66rem] uppercase tracking-[0.32em] text-gold/75">Snapshot {index + 1}</div>
-              <div className="mt-3 text-2xl text-white" style={{ fontFamily: "var(--font-display)" }}>
-                {point.score.toFixed(1)}
-              </div>
-              <div className="mt-2 text-sm text-white/55">{new Date(point.captured_at).toLocaleDateString()}</div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {points.map((point, index) => (
+                <div key={`${point.captured_at}-${index}-meta`} className="data-slab">
+                  <div className="text-[0.66rem] uppercase tracking-[0.32em] text-gold/75">Snapshot {index + 1}</div>
+                  <div className="mt-3 text-2xl text-white" style={{ fontFamily: "var(--font-display)" }}>
+                    {point.score.toFixed(1)}
+                  </div>
+                  <div className="mt-2 text-sm text-white/55">{new Date(point.captured_at).toLocaleDateString()}</div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </>
+        ) : (
+          <div className="rounded-[1.4rem] border border-dashed border-white/12 bg-black/20 px-4 py-8 text-sm text-white/55">
+            No captured score history is available for this entity yet.
+          </div>
+        )}
       </div>
     </section>
   );

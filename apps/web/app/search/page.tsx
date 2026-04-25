@@ -1,9 +1,10 @@
 import Link from "next/link";
 
+import { DataStateBanner } from "@/components/data-state-banner";
 import { ArchiveSigilIcon, IconFrame, SearchSigilIcon } from "@/components/nexus-icons";
 import { ScenePanel } from "@/components/scene-panel";
 import { SearchCommandPalette } from "@/components/search-command-palette";
-import { getSearchResults } from "@/lib/api";
+import { getSearchResults, isFallbackData } from "@/lib/api";
 
 const typeDescriptions: Record<string, string> = {
   guild: "Guild profile and progression page",
@@ -45,6 +46,12 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
   return (
     <div className="page-shell space-y-8">
+      {query && isFallbackData(results) ? (
+        <DataStateBanner
+          description="A busca publica nao respondeu a tempo. Os resultados abaixo estao em estado neutro enquanto a API nao retorna a leitura real."
+          error={results._requestError}
+        />
+      ) : null}
       <section className="grid gap-6 xl:grid-cols-[1.02fr_0.98fr]">
         <div className="panel panel-section-lg">
           <div className="flex items-start justify-between gap-4">

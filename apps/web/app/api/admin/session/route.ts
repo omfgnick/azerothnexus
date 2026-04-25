@@ -34,14 +34,14 @@ export async function POST(request: Request) {
   }
 
   const cookieStore = await cookies();
-  cookieStore.set(ADMIN_SESSION_COOKIE_NAME, getAdminSessionCookieValue(), getAdminSessionCookieOptions());
+  cookieStore.set(ADMIN_SESSION_COOKIE_NAME, getAdminSessionCookieValue(), getAdminSessionCookieOptions(request));
   return NextResponse.json({ ok: true });
 }
 
-export async function DELETE() {
+export async function DELETE(request: Request) {
   const cookieStore = await cookies();
   cookieStore.set(ADMIN_SESSION_COOKIE_NAME, "", {
-    ...getAdminSessionCookieOptions(),
+    ...getAdminSessionCookieOptions(request),
     maxAge: 0,
   });
   return NextResponse.json({ ok: true });

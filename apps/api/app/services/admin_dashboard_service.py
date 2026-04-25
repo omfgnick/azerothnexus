@@ -109,5 +109,4 @@ class AdminDashboardService:
                 "latest": backup_summary["items"][0] if backup_summary["items"] else None,
             },
             "audit_summary": audit_summary,
-            "missing_admin_token": False,
         }

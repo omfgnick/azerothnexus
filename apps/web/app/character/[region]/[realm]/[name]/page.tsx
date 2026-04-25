@@ -1,9 +1,10 @@
 import { AdminEntityRefreshSlot } from "@/components/admin-entity-refresh-slot";
 import { CharacterArmoryPanel } from "@/components/character-armory-panel";
+import { DataStateBanner } from "@/components/data-state-banner";
 import { ChampionSigilIcon, IconFrame, NexusCrestIcon } from "@/components/nexus-icons";
 import { ScenePanel } from "@/components/scene-panel";
 import { ScoreHistoryChart } from "@/components/score-history-chart";
-import { getCharacter, getCharacterHistory } from "@/lib/api";
+import { getCharacter, getCharacterHistory, isFallbackData } from "@/lib/api";
 
 export default async function CharacterPage({ params }: { params: Promise<{ region: string; realm: string; name: string }> }) {
   const resolved = await params;
@@ -15,6 +16,12 @@ export default async function CharacterPage({ params }: { params: Promise<{ regi
 
   return (
     <div className="page-shell space-y-8">
+      {isFallbackData(character) || isFallbackData(history) ? (
+        <DataStateBanner
+          description="Este perfil entrou em modo seguro porque a leitura publica do personagem nao respondeu a tempo. O Nexus agora deixa isso explicito e evita preencher com dados ficticios."
+          error={character._requestError ?? history._requestError}
+        />
+      ) : null}
       <section className="grid gap-6 xl:grid-cols-[0.98fr_1.02fr]">
         <div className="panel panel-section-lg">
           <div className="flex items-start justify-between gap-4">

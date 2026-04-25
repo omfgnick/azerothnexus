@@ -89,12 +89,16 @@ generate_admin_token() {
 
 generate_admin_password() {
   if command -v openssl >/dev/null 2>&1; then
-    openssl rand -base64 18 | tr -d '\n' | tr '/+=' 'xyz'
+    local raw
+    raw="$(openssl rand -hex 12 | tr -d '\n')"
+    printf 'nexus-%s-%s-%s' "${raw:0:6}" "${raw:6:6}" "${raw:12:6}"
     return
   fi
 
   if [[ -r /dev/urandom ]] && command -v od >/dev/null 2>&1; then
-    od -An -tx1 -N12 /dev/urandom | tr -d ' \n'
+    local raw
+    raw="$(od -An -tx1 -N12 /dev/urandom | tr -d ' \n')"
+    printf 'nexus-%s-%s-%s' "${raw:0:6}" "${raw:6:6}" "${raw:12:6}"
     return
   fi
 

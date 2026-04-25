@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
+import { joinApiUrl, resolvePublicApiBaseUrl } from "@/lib/api-url";
 import type { SearchItem } from "@/lib/api";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+const API_BASE_URL = resolvePublicApiBaseUrl();
 
 type Props = {
   initialQuery?: string;
@@ -24,7 +25,7 @@ function buildAutocompleteUrl(query: string, region: string, realm: string, guil
   if (realm) params.set("realm", realm);
   if (guild) params.set("guild", guild);
   if (type && type !== "all") params.set("type", type);
-  return `${API_BASE_URL}/api/search/autocomplete?${params.toString()}`;
+  return joinApiUrl(API_BASE_URL, `/api/search/autocomplete?${params.toString()}`);
 }
 
 function buildSearchHref(query: string, region: string, realm: string, guild: string, type: string) {
@@ -100,84 +101,132 @@ export function SearchCommandPalette({
 
   return (
     <div className={`relative ${compact ? "" : "mt-8"}`}>
-      <form action="/search" className="panel panel-section relative overflow-visible">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_left,rgba(110,203,255,0.12),transparent_0_24%),radial-gradient(circle_at_right,rgba(214,190,144,0.12),transparent_0_24%)]" />
-        <div className="relative space-y-5">
-          <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="eyebrow">{compact ? "Azeroth Nexus search" : "Search and discovery"}</p>
-              <h2 className="mt-4 text-xl leading-tight text-white sm:text-2xl md:text-3xl" style={{ fontFamily: "var(--font-display)" }}>
-                Search Azeroth Nexus by guild, character, realm, or region.
-              </h2>
-            </div>
-            <div className="rune-pill">{loading ? "Scanning the runes" : "Public lookup active"}</div>
-          </div>
+      <form action="/search" className={`relative overflow-visible ${compact ? "" : "panel panel-section"}`}>
+        {compact ? (
+          <div className="rounded-[20px] border border-white/10 bg-[linear-gradient(180deg,rgba(14,22,40,0.98),rgba(8,13,24,0.98))] p-3 shadow-[0_24px_56px_rgba(0,0,0,0.34)]">
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+                <div className="relative min-w-0 flex-1">
+                  <input
+                    name="q"
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    onFocus={() => setFocused(true)}
+                    onBlur={() => window.setTimeout(() => setFocused(false), 120)}
+                    placeholder="Search guild, character, realm..."
+                    className="h-14 w-full rounded-[14px] border border-white/10 bg-white/5 px-4 text-base text-white outline-none transition focus:border-cyan-300/35 focus:bg-white/[0.07]"
+                  />
+                </div>
 
-          <div className="grid gap-3 lg:grid-cols-[1.5fr_160px_170px]">
-            <div>
-              <label className="field-label">Search</label>
-              <input
-                name="q"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                onFocus={() => setFocused(true)}
-                onBlur={() => window.setTimeout(() => setFocused(false), 120)}
-                placeholder="Void Vanguard, Aethryl, Stormrage..."
-                className="arcane-field"
-              />
-            </div>
-            <div>
-              <label className="field-label">Region</label>
-              <select name="region" value={region} onChange={(event) => setRegion(event.target.value)} className="arcane-field">
-                <option value="">All regions</option>
-                <option value="us">US</option>
-                <option value="eu">EU</option>
-              </select>
-            </div>
-            <div>
-              <label className="field-label">Type</label>
-              <select name="type" value={type} onChange={(event) => setType(event.target.value)} className="arcane-field">
-                <option value="all">All entities</option>
-                <option value="guild">Guilds</option>
-                <option value="character">Characters</option>
-                <option value="realm">Realms</option>
-                <option value="region">Regions</option>
-                <option value="raid">Raids</option>
-              </select>
-            </div>
-          </div>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    ["all", "All"],
+                    ["guild", "Guild"],
+                    ["character", "Char"],
+                    ["realm", "Realm"],
+                  ].map(([value, label]) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => setType(value)}
+                      className={`rounded-full border px-3 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.18em] transition ${
+                        type === value
+                          ? "border-gold/35 bg-gold/12 text-gold"
+                          : "border-white/10 bg-white/5 text-white/70 hover:border-white/20 hover:text-white"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
 
-          <div className="grid gap-3 lg:grid-cols-[1fr_1fr_auto]">
-            <div>
-              <label className="field-label">Realm filter</label>
-              <input
-                name="realm"
-                value={realm}
-                onChange={(event) => setRealm(event.target.value)}
-                placeholder="stormrage, tarren-mill..."
-                className="arcane-field"
-              />
-            </div>
-            <div>
-              <label className="field-label">Guild filter</label>
-              <input
-                name="guild"
-                value={guild}
-                onChange={(event) => setGuild(event.target.value)}
-                placeholder="Void Vanguard..."
-                className="arcane-field"
-              />
-            </div>
-            <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-end">
-              <button type="submit" className="arcane-button">
-                Search now
-              </button>
-              <Link href={href} className="arcane-button-secondary">
-                Open results
-              </Link>
+                <Link href={href} className="arcane-button min-w-[164px]">
+                  {loading ? "Scanning..." : "Open results"}
+                </Link>
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <>
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_left,rgba(110,203,255,0.12),transparent_0_24%),radial-gradient(circle_at_right,rgba(214,190,144,0.12),transparent_0_24%)]" />
+            <div className="relative space-y-5">
+              <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                <div>
+                  <p className="eyebrow">Search and discovery</p>
+                  <h2 className="mt-4 text-xl leading-tight text-white sm:text-2xl md:text-3xl" style={{ fontFamily: "var(--font-display)" }}>
+                    Search Azeroth Nexus by guild, character, realm, or region.
+                  </h2>
+                </div>
+                <div className="rune-pill">{loading ? "Scanning the runes" : "Public lookup active"}</div>
+              </div>
+
+              <div className="grid gap-3 lg:grid-cols-[1.5fr_160px_170px]">
+                <div>
+                  <label className="field-label">Search</label>
+                  <input
+                    name="q"
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    onFocus={() => setFocused(true)}
+                    onBlur={() => window.setTimeout(() => setFocused(false), 120)}
+                    placeholder="Void Vanguard, Aethryl, Stormrage..."
+                    className="arcane-field"
+                  />
+                </div>
+                <div>
+                  <label className="field-label">Region</label>
+                  <select name="region" value={region} onChange={(event) => setRegion(event.target.value)} className="arcane-field">
+                    <option value="">All regions</option>
+                    <option value="us">US</option>
+                    <option value="eu">EU</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="field-label">Type</label>
+                  <select name="type" value={type} onChange={(event) => setType(event.target.value)} className="arcane-field">
+                    <option value="all">All entities</option>
+                    <option value="guild">Guilds</option>
+                    <option value="character">Characters</option>
+                    <option value="realm">Realms</option>
+                    <option value="region">Regions</option>
+                    <option value="raid">Raids</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid gap-3 lg:grid-cols-[1fr_1fr_auto]">
+                <div>
+                  <label className="field-label">Realm filter</label>
+                  <input
+                    name="realm"
+                    value={realm}
+                    onChange={(event) => setRealm(event.target.value)}
+                    placeholder="stormrage, tarren-mill..."
+                    className="arcane-field"
+                  />
+                </div>
+                <div>
+                  <label className="field-label">Guild filter</label>
+                  <input
+                    name="guild"
+                    value={guild}
+                    onChange={(event) => setGuild(event.target.value)}
+                    placeholder="Void Vanguard..."
+                    className="arcane-field"
+                  />
+                </div>
+                <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-end">
+                  <button type="submit" className="arcane-button">
+                    Search now
+                  </button>
+                  <Link href={href} className="arcane-button-secondary">
+                    Open results
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </form>
 
       {focused && query.trim().length >= 2 ? (

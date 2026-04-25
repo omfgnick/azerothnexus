@@ -1,8 +1,9 @@
 import { AdminEntityRefreshSlot } from "@/components/admin-entity-refresh-slot";
+import { DataStateBanner } from "@/components/data-state-banner";
 import { GuildSigilIcon, IconFrame, RaidSigilIcon } from "@/components/nexus-icons";
 import { ScenePanel } from "@/components/scene-panel";
 import { ScoreHistoryChart } from "@/components/score-history-chart";
-import { getGuild, getGuildHistory } from "@/lib/api";
+import { getGuild, getGuildHistory, isFallbackData } from "@/lib/api";
 
 export default async function GuildPage({ params }: { params: Promise<{ region: string; realm: string; guild: string }> }) {
   const resolved = await params;
@@ -14,6 +15,12 @@ export default async function GuildPage({ params }: { params: Promise<{ region: 
 
   return (
     <div className="page-shell space-y-8">
+      {isFallbackData(guild) || isFallbackData(history) ? (
+        <DataStateBanner
+          description="O perfil desta guilda esta em modo seguro porque a leitura publica nao respondeu a tempo. Os campos neutros abaixo nao representam dados confirmados."
+          error={guild._requestError ?? history._requestError}
+        />
+      ) : null}
       <section className="grid gap-6 xl:grid-cols-[0.98fr_1.02fr]">
         <div className="panel panel-section-lg">
           <div className="flex items-start justify-between gap-4">

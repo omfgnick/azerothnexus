@@ -1,13 +1,20 @@
+import { DataStateBanner } from "@/components/data-state-banner";
 import { ComparePanel } from "@/components/compare-panel";
 import { CompareSigilIcon, IconFrame } from "@/components/nexus-icons";
 import { ScenePanel } from "@/components/scene-panel";
-import { compareCharacters, compareGuilds } from "@/lib/api";
+import { compareCharacters, compareGuilds, isFallbackData } from "@/lib/api";
 
 export default async function ComparePage() {
   const [guildComparison, characterComparison] = await Promise.all([compareGuilds(), compareCharacters()]);
 
   return (
     <div className="page-shell space-y-8">
+      {isFallbackData(guildComparison) || isFallbackData(characterComparison) ? (
+        <DataStateBanner
+          description="Uma ou mais comparacoes entraram em modo de contingencia. A pagina continua navegavel, mas os dados reais ainda nao foram entregues."
+          error={guildComparison._requestError ?? characterComparison._requestError}
+        />
+      ) : null}
       <section className="grid gap-6 xl:grid-cols-[0.98fr_1.02fr]">
         <div className="panel panel-section-lg">
           <div className="flex items-start justify-between gap-4">

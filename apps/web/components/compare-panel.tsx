@@ -81,28 +81,34 @@ export function ComparePanel({ title, comparison }: { title: string; comparison:
       </div>
 
       <div className="mt-6 grid gap-3 lg:grid-cols-2">
-        {comparison.dimensions.map((dimension) => (
-          <div key={dimension.key} className="data-slab">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <div className="text-[0.68rem] uppercase tracking-[0.3em] text-gold/75">{dimension.label}</div>
-                <div className={`mt-2 text-sm font-semibold uppercase tracking-[0.16em] ${edgeTone(dimension.winner)}`}>
-                  {dimension.winner === "tie" ? "Even footing" : `${dimension.winner} side edge`}
+        {comparison.dimensions.length ? (
+          comparison.dimensions.map((dimension) => (
+            <div key={dimension.key} className="data-slab">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <div className="text-[0.68rem] uppercase tracking-[0.3em] text-gold/75">{dimension.label}</div>
+                  <div className={`mt-2 text-sm font-semibold uppercase tracking-[0.16em] ${edgeTone(dimension.winner)}`}>
+                    {dimension.winner === "tie" ? "Even footing" : `${dimension.winner} side edge`}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xl text-white" style={{ fontFamily: "var(--font-display)" }}>
+                    {dimension.left_score.toFixed(1)} / {dimension.right_score.toFixed(1)}
+                  </div>
+                  <div className="text-xs uppercase tracking-[0.18em] text-white/45">
+                    delta {dimension.delta >= 0 ? "+" : ""}
+                    {dimension.delta.toFixed(1)}
+                  </div>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-xl text-white" style={{ fontFamily: "var(--font-display)" }}>
-                  {dimension.left_score.toFixed(1)} / {dimension.right_score.toFixed(1)}
-                </div>
-                <div className="text-xs uppercase tracking-[0.18em] text-white/45">
-                  delta {dimension.delta >= 0 ? "+" : ""}
-                  {dimension.delta.toFixed(1)}
-                </div>
-              </div>
+              <p className="mt-4 text-sm text-white/60">{dimension.note}</p>
             </div>
-            <p className="mt-4 text-sm text-white/60">{dimension.note}</p>
+          ))
+        ) : (
+          <div className="data-slab lg:col-span-2">
+            <p className="text-sm leading-7 text-white/60">Comparison dimensions are unavailable for this readout.</p>
           </div>
-        ))}
+        )}
       </div>
     </section>
   );

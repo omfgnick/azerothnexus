@@ -1,7 +1,8 @@
 import { AdminIntegrationForm } from "@/components/admin-integration-form";
 import { AdminRefreshAllButton } from "@/components/admin-refresh-all-button";
+import { DataStateBanner } from "@/components/data-state-banner";
 import { IconFrame, NexusCrestIcon, SearchSigilIcon, WarboardSigilIcon } from "@/components/nexus-icons";
-import { getAdminDashboard, getAdminIntegrations } from "@/lib/api";
+import { getAdminDashboard, getAdminIntegrations, isFallbackData } from "@/lib/api";
 
 const providerCopy: Record<string, { label: string; auth: string; requirements: string }> = {
   blizzard: {
@@ -40,6 +41,13 @@ export default async function AdminIntegrationsPage() {
 
   return (
     <div className="space-y-8">
+      {isFallbackData(settings) || isFallbackData(dashboard) ? (
+        <DataStateBanner
+          title="Integracoes indisponiveis"
+          description="O painel nao conseguiu carregar toda a configuracao protegida nesta leitura. Isso nao revela segredos, mas indica falha no proxy admin ou token ausente no servidor web."
+          error={settings._requestError ?? dashboard._requestError}
+        />
+      ) : null}
       <section className="grid gap-5 md:grid-cols-4">
         {[
           ["Providers visiveis", String(visibleProviders)],
@@ -200,14 +208,6 @@ export default async function AdminIntegrationsPage() {
                 </div>
               )}
 
-              {dashboard.missing_admin_token ? (
-                <div className="data-slab border-amber-400/20">
-                  <div className="text-[0.66rem] uppercase tracking-[0.34em] text-amber-100/85">Web admin token missing</div>
-                  <p className="mt-3 text-sm leading-7 text-white/62">
-                    Configure `ADMIN_API_TOKEN` in the web environment so the admin UI can proxy protected backend operations cleanly.
-                  </p>
-                </div>
-              ) : null}
             </div>
           </div>
         </div>

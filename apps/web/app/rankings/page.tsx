@@ -1,9 +1,10 @@
 import Link from "next/link";
 
+import { DataStateBanner } from "@/components/data-state-banner";
 import { IconFrame, WarboardSigilIcon } from "@/components/nexus-icons";
 import { RankingTable } from "@/components/ranking-table";
 import { ScenePanel } from "@/components/scene-panel";
-import { getGuildLadder } from "@/lib/api";
+import { getGuildLadder, isFallbackData } from "@/lib/api";
 
 export default async function RankingsPage() {
   const ladder = await getGuildLadder();
@@ -11,6 +12,12 @@ export default async function RankingsPage() {
 
   return (
     <div className="page-shell space-y-8">
+      {isFallbackData(ladder) ? (
+        <DataStateBanner
+          description="Os rankings publicos nao responderam a tempo. Esta warboard page continua funcional, mas os valores reais ainda nao foram entregues por este ciclo."
+          error={ladder._requestError}
+        />
+      ) : null}
       <section className="grid gap-6 xl:grid-cols-[0.98fr_1.02fr]">
         <div className="panel panel-section-lg">
           <div className="flex items-start justify-between gap-4">

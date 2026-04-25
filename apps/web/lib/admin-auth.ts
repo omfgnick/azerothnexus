@@ -38,11 +38,28 @@ export function getAdminSessionCookieValue(): string {
   return getAdminCredentials().sessionSecret;
 }
 
-export function getAdminSessionCookieOptions() {
+export function shouldUseSecureAdminCookie(request?: Request) {
+  if (!request) {
+    return process.env.NODE_ENV === "production";
+  }
+
+  const forwardedProto = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim().toLowerCase();
+  if (forwardedProto) {
+    return forwardedProto === "https";
+  }
+
+  try {
+    return new URL(request.url).protocol === "https:";
+  } catch {
+    return process.env.NODE_ENV === "production";
+  }
+}
+
+export function getAdminSessionCookieOptions(request?: Request) {
   return {
     httpOnly: true,
     sameSite: "lax" as const,
-    secure: process.env.NODE_ENV === "production",
+    secure: shouldUseSecureAdminCookie(request),
     path: "/",
     maxAge: 60 * 60 * 12,
   };

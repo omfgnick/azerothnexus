@@ -1,22 +1,23 @@
 import Link from "next/link";
+import { Suspense } from "react";
 
-import { Hero } from "@/components/hero";
-import {
-  ArchiveSigilIcon,
-  IconFrame,
-  NexusCrestIcon,
-  RaidSigilIcon,
-  SearchSigilIcon,
-  WarboardSigilIcon,
-} from "@/components/nexus-icons";
+import { DataStateBanner } from "@/components/data-state-banner";
+import { Hero, type HeroMetric, type HeroOverview } from "@/components/hero";
 import { RankingTable } from "@/components/ranking-table";
-import { ScenePanel } from "@/components/scene-panel";
-import { StatCard } from "@/components/stat-card";
-import { getActivityFeed, getGuildLadder, getMythicDashboard, getRaidDashboard } from "@/lib/api";
+import { getActivityFeed, getGuildLadder, getMythicDashboard, getRaidDashboard, isFallbackData } from "@/lib/api";
 import { getDictionary } from "@/lib/locale";
 
-export default async function HomePage() {
-  const { copy } = await getDictionary();
+function HomeSectionSkeleton({ height = "h-[320px]" }: { height?: string }) {
+  return (
+    <div className={`animate-pulse rounded-[24px] border border-white/8 bg-white/[0.03] ${height}`} />
+  );
+}
+
+async function HomeHeroSection({
+  copy,
+}: {
+  copy: Awaited<ReturnType<typeof getDictionary>>["copy"]["hero"];
+}) {
   const [ladder, raid, mythic, activity] = await Promise.all([
     getGuildLadder(),
     getRaidDashboard(),
@@ -25,297 +26,251 @@ export default async function HomePage() {
   ]);
 
   const topGuild = ladder.entries?.[0];
+  const hasFallback = [ladder, raid, mythic, activity].some(isFallbackData);
+  const metricDetails = copy.readings.slice(0, 4);
+  const metrics: HeroMetric[] = [
+    {
+      label: metricDetails[0]?.label ?? "Visible guilds",
+      value: String(ladder.entries.length),
+      detail: metricDetails[0]?.detail,
+      tone: "gold" as const,
+    },
+    {
+      label: metricDetails[1]?.label ?? "Live events",
+      value: String(activity.items.length),
+      detail: metricDetails[1]?.detail,
+      tone: "cyan" as const,
+    },
+    {
+      label: metricDetails[2]?.label ?? "Raid bosses",
+      value: String(raid.bosses.length),
+      detail: metricDetails[2]?.detail,
+      tone: "default" as const,
+    },
+    {
+      label: metricDetails[3]?.label ?? "Data feed",
+      value: hasFallback ? "Fallback" : "Live",
+      detail: metricDetails[3]?.detail,
+      tone: hasFallback ? "default" : "green",
+    },
+  ];
+
+  const overview: HeroOverview = {
+    badge: hasFallback ? "Fallback" : "Live",
+    metrics: [
+      {
+        label: copy.warboardLabel,
+        value: topGuild ? topGuild.score.toFixed(1) : "--",
+        tone: "gold" as const,
+      },
+      {
+        label: copy.archiveLabel,
+        value: mythic.meta_analysis?.timed_ratio ? `${mythic.meta_analysis.timed_ratio}%` : "--",
+        tone: "cyan" as const,
+      },
+      {
+        label: "Top guild tier",
+        value: topGuild?.tier ?? "--",
+        tone: "default" as const,
+      },
+      {
+        label: "Signal state",
+        value: hasFallback ? "Partial" : "Stable",
+        tone: hasFallback ? "default" : "green",
+      },
+    ],
+    details: [
+      { label: "Current raid", value: raid.raid?.name ?? "--", tone: "gold" as const },
+      { label: "Season", value: raid.raid?.season ?? "--" },
+      { label: "Mythic bosses tracked", value: String(raid.bosses.length) },
+      { label: "Most played route", value: mythic.meta_analysis?.most_played_dungeons?.[0] ?? "--", tone: "cyan" as const },
+      { label: "Feed events", value: String(activity.items.length) },
+    ],
+  };
+
+  return (
+    <section className="space-y-5">
+      {hasFallback ? (
+        <DataStateBanner
+          title="Parte dos dados esta indisponivel"
+          description="Esta tela entrou em modo de contingencia. O layout continua operando, mas voce pode estar vendo dados vazios ou neutros enquanto a API se recompõe."
+          error={[ladder, raid, mythic, activity].find(isFallbackData)?._requestError ?? null}
+        />
+      ) : null}
+      <Hero copy={copy} metrics={metrics} overview={overview} />
+    </section>
+  );
+}
+
+async function HomeRankingSection() {
+  const ladder = await getGuildLadder();
+
+  return (
+    <section className="space-y-5">
+      {isFallbackData(ladder) ? (
+        <DataStateBanner
+          title="Warboard em modo de contingencia"
+          description="Os rankings publicos nao responderam a tempo. O warboard continua acessivel, mas os dados reais ainda nao chegaram nesta leitura."
+          error={ladder._requestError}
+        />
+      ) : null}
+
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <div className="eyebrow">World rankings</div>
+          <h2 className="mt-4 section-title">Guild progression ladder</h2>
+        </div>
+        <Link href="/rankings" className="arcane-button-secondary">
+          Open full warboard
+        </Link>
+      </div>
+
+      <RankingTable title="Guild Progression Ladder" entries={ladder.entries} />
+    </section>
+  );
+}
+
+async function HomeIntelligenceSection() {
+  const [activity, mythic, raid] = await Promise.all([
+    getActivityFeed(),
+    getMythicDashboard(),
+    getRaidDashboard(),
+  ]);
+
+  const hasFallback = [activity, mythic, raid].some(isFallbackData);
   const popularDungeons = mythic.meta_analysis?.most_played_dungeons ?? [];
 
   return (
-    <div className="page-shell space-y-10">
-      <Hero copy={copy.hero} />
+    <section className="space-y-5">
+      {hasFallback ? (
+        <DataStateBanner
+          title="Inteligencia parcial"
+          description="A camada de feed e meta nao conseguiu preencher todos os paineis. O Nexus mostra estados seguros e neutros ate a proxima sincronizacao."
+          error={[activity, mythic, raid].find(isFallbackData)?._requestError ?? null}
+        />
+      ) : null}
 
-      <section className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
-        <div className="grid gap-6">
-          <ScenePanel
-            eyebrow="Azeroth Nexus"
-            title="A front page staged as a celestial fortress instead of a sterile product grid."
-            description="The Nexus now opens with scenic chambers, command rooms, and places that feel forged for World of Warcraft intelligence rather than generic dashboard furniture."
-            imageSrc="/images/nexus-observatory-hero.png"
-            imageAlt="Azeroth Nexus observatory perched above a moonlit magical skyline."
-            icon={
-              <IconFrame className="h-16 w-16 rounded-[1.45rem]" tone="gold">
-                <NexusCrestIcon className="h-8 w-8" />
-              </IconFrame>
-            }
-            badge="Signature observatory"
-            href="/search"
-            actionLabel="Enter the observatory"
-            priority
-            className="legend-frame"
-          />
-
-          <div className="grid gap-6 lg:grid-cols-[0.94fr_1.06fr]">
-            <ScenePanel
-              eyebrow="Astral archives"
-              title="Search through tomes, sigils, and public records."
-              description="The search surface now opens like a ritual library, with real atmosphere and clearer narrative about what the Nexus knows."
-              imageSrc="/images/astral-archives-card.png"
-              imageAlt="Rune-lit fantasy archive filled with scrolls, celestial maps, and floating tomes."
-              icon={
-                <IconFrame className="h-14 w-14 rounded-[1.15rem]" tone="arcane">
-                  <ArchiveSigilIcon className="h-6 w-6" />
-                </IconFrame>
-              }
-              badge="Public search"
-              href="/search"
-              actionLabel="Open archive search"
-              layout="portrait"
-            />
-
-            <ScenePanel
-              eyebrow="Nexus warboard"
-              title="Survey the strongest guilds from a live command chamber."
-              description="Rankings read like leadership intelligence now, with a scenic anchor that frames the ladder before the score columns even begin."
-              imageSrc="/images/nexus-warboard-card.png"
-              imageAlt="High-altitude command chamber with a glowing warboard map suspended over clouds."
-              icon={
-                <IconFrame className="h-14 w-14 rounded-[1.15rem]" tone="gold">
-                  <WarboardSigilIcon className="h-6 w-6" />
-                </IconFrame>
-              }
-              badge="World rankings"
-              href="/rankings"
-              actionLabel="Open guild warboard"
-            />
-          </div>
-        </div>
-
-        <aside className="panel panel-section-lg panel-legendary legend-frame">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="eyebrow">Nexus cartography</p>
-              <h2 className="mt-4 section-title">Operational intelligence gathered into one ceremonial vault.</h2>
-              <p className="mt-4 max-w-2xl text-sm leading-7 text-white/62">
-                Signals from guild progress, search activity, raids, and Mythic+ are no longer spread flat across the screen. They now sit inside one high-command deck.
-              </p>
+      <div className="grid gap-6 xl:grid-cols-3">
+        <div className="rounded-[24px] border border-white/8 bg-[linear-gradient(180deg,rgba(14,22,40,0.98),rgba(8,13,24,0.98))] p-5 shadow-[0_24px_60px_rgba(0,0,0,0.32)]">
+          <div className="flex items-center justify-between gap-4">
+            <div className="text-[0.72rem] uppercase tracking-[0.24em] text-gold/75">Activity feed</div>
+            <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[0.66rem] uppercase tracking-[0.16em] text-white/55">
+              {activity.items.length} events
             </div>
-            <div className="rune-pill">Live lattice</div>
           </div>
 
-          <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            <StatCard
-              label="Tracked entities"
-              value="18.4K"
-              detail="Guilds, champions, realms, and regions standing ready for scouting."
-              tone="gold"
-              icon={
-                <IconFrame className="h-12 w-12 rounded-[1rem]" tone="gold">
-                  <NexusCrestIcon className="h-5 w-5" />
-                </IconFrame>
-              }
-            />
-            <StatCard
-              label="Guild apex"
-              value={topGuild?.grade ?? "Legend"}
-              detail={topGuild?.label ? `${topGuild.label} leads the current visible ladder.` : "Ranking intelligence primed for command review."}
-              tone="violet"
-              icon={
-                <IconFrame className="h-12 w-12 rounded-[1rem]" tone="violet">
-                  <WarboardSigilIcon className="h-5 w-5" />
-                </IconFrame>
-              }
-            />
-            <StatCard
-              label="Timed ratio"
-              value={`${mythic.meta_analysis?.timed_ratio ?? 0}%`}
-              detail="Dungeon completion pressure visualized as a live seasonal omen."
-              tone="arcane"
-              icon={
-                <IconFrame className="h-12 w-12 rounded-[1rem]" tone="arcane">
-                  <RaidSigilIcon className="h-5 w-5" />
-                </IconFrame>
-              }
-            />
-            <StatCard
-              label="Scrying layer"
-              value="Live"
-              detail="Autocomplete by name, realm, guild, or character from a proper runic dais."
-              tone="emerald"
-              icon={
-                <IconFrame className="h-12 w-12 rounded-[1rem]" tone="emerald">
-                  <SearchSigilIcon className="h-5 w-5" />
-                </IconFrame>
-              }
-            />
-          </div>
-
-          {topGuild ? (
-            <div className="mt-6 data-slab border-gold/20">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Warboard signal</div>
-              <div className="mt-3 text-[1.65rem] leading-none text-gold sm:text-[2rem]" style={{ fontFamily: "var(--font-display)" }}>
-                {topGuild.label}
-              </div>
+          <div className="mt-5 space-y-3">
+            {activity.items.length ? (
+              activity.items.slice(0, 6).map((item) => (
+                <div key={`${item.type}-${item.title}-${item.created_at}`} className="rounded-[16px] border border-white/8 bg-white/[0.03] px-4 py-3">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <div className="text-sm font-semibold text-white">{item.title}</div>
+                      {item.subtitle ? <div className="mt-1 text-sm text-white/55">{item.subtitle}</div> : null}
+                    </div>
+                    <div className="text-[0.68rem] uppercase tracking-[0.18em] text-white/38">{item.type}</div>
+                  </div>
                 </div>
-                <div className="rune-chip">{topGuild.tier ?? "Season watch"}</div>
+              ))
+            ) : (
+              <div className="rounded-[16px] border border-dashed border-white/12 bg-black/20 px-4 py-5 text-sm text-white/55">
+                No public activity events are available right now.
               </div>
-              <div className="mt-4 flex flex-wrap items-center gap-3 text-sm uppercase tracking-[0.18em] text-white/55">
-                <span>Composite {topGuild.score.toFixed(1)}</span>
-                {topGuild.trend ? <span>{topGuild.trend}</span> : null}
-                {topGuild.grade ? <span>{topGuild.grade}</span> : null}
-              </div>
-              <p className="mt-4 text-sm leading-7 text-white/66">{topGuild.explanation}</p>
-            </div>
-          ) : null}
-
-          <div className="mt-6 grid gap-4 sm:grid-cols-2">
-            <div className="data-slab">
-              <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Raid season</div>
-              <div className="mt-3 text-[1.45rem] leading-tight text-white sm:text-[1.85rem]" style={{ fontFamily: "var(--font-display)" }}>
-                {raid.raid?.name ?? "Current tier"}
-              </div>
-              <p className="mt-4 text-sm leading-7 text-white/62">
-                {raid.raid?.season ?? "Season watch"} arranged as a sequence of encounters with more ritual presence.
-              </p>
-            </div>
-
-            <div className="data-slab">
-              <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Popular routes</div>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {popularDungeons.slice(0, 4).map((name: string) => (
-                  <span key={name} className="rune-chip">
-                    {name}
-                  </span>
-                ))}
-              </div>
-              <p className="mt-4 text-sm leading-7 text-white/62">Most-played Mythic+ dungeons surfaced as route pressure, not buried metadata.</p>
-            </div>
+            )}
           </div>
-        </aside>
-      </section>
-
-      <section className="grid gap-6 xl:grid-cols-[1.14fr_0.86fr]">
-        <div className="legend-frame">
-          <RankingTable title="Top Guild Ladder" entries={ladder.entries} />
         </div>
 
-        <div className="panel panel-section-lg">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="eyebrow">Raid cathedral</p>
-              <h2 className="mt-4 section-title">Current raid encounters arranged like a procession of omens.</h2>
+        <div className="rounded-[24px] border border-white/8 bg-[linear-gradient(180deg,rgba(14,22,40,0.98),rgba(8,13,24,0.98))] p-5 shadow-[0_24px_60px_rgba(0,0,0,0.32)]">
+          <div className="flex items-center justify-between gap-4">
+            <div className="text-[0.72rem] uppercase tracking-[0.24em] text-sky-100/80">Mythic+ meta</div>
+            <div className="rounded-full border border-sky-300/14 bg-sky-500/10 px-3 py-1 text-[0.66rem] uppercase tracking-[0.16em] text-sky-100/80">
+              {mythic.meta_analysis?.timed_ratio ? `${mythic.meta_analysis.timed_ratio}% timed` : "--"}
             </div>
-            <div className="rune-pill">{raid.raid?.season ?? "Season watch"}</div>
           </div>
 
-          <div className="mt-6 space-y-4">
-            {raid.bosses.map((boss: { name: string; order: number }) => (
-              <div key={boss.name} className="data-slab">
-                <div className="flex items-start gap-4">
-                  <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-[1.4rem] border border-gold/25 bg-[radial-gradient(circle,rgba(214,190,144,0.18),rgba(110,203,255,0.08),rgba(4,8,18,0.84))]">
-                    <span className="absolute inset-[6px] rounded-[1.1rem] border border-white/10" />
-                    <span className="relative text-xl text-gold" style={{ fontFamily: "var(--font-display)" }}>
-                      {String(boss.order).padStart(2, "0")}
+          <div className="mt-5 space-y-3">
+            {popularDungeons.length ? (
+              popularDungeons.slice(0, 5).map((dungeon: string, index: number) => (
+                <div key={dungeon} className="space-y-2 rounded-[16px] border border-white/8 bg-white/[0.03] px-4 py-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-sm font-semibold text-white">{dungeon}</span>
+                    <span className="font-['Space_Mono',monospace] text-xs text-white/45">
+                      {Math.max(100 - index * 8, 64)}%
                     </span>
                   </div>
-                  <div className="min-w-0">
-                    <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Encounter {boss.order}</div>
-                    <div className="mt-3 text-[1.4rem] leading-tight text-white sm:text-[1.75rem]" style={{ fontFamily: "var(--font-display)" }}>
-                      {boss.name}
-                    </div>
-                    <p className="mt-3 text-sm leading-7 text-white/62">
-                      The observatory frames each boss as a named threshold on the path to tier domination rather than a flat list item.
-                    </p>
+                  <div className="h-2 overflow-hidden rounded-full bg-white/6">
+                    <div
+                      className="h-full rounded-full bg-[linear-gradient(90deg,#4CC9F0,rgba(76,201,240,0.28))]"
+                      style={{ width: `${Math.max(100 - index * 8, 64)}%` }}
+                    />
                   </div>
                 </div>
+              ))
+            ) : (
+              <div className="rounded-[16px] border border-dashed border-white/12 bg-black/20 px-4 py-5 text-sm text-white/55">
+                Mythic+ route data is not available right now.
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-[24px] border border-white/8 bg-[linear-gradient(180deg,rgba(14,22,40,0.98),rgba(8,13,24,0.98))] p-5 shadow-[0_24px_60px_rgba(0,0,0,0.32)]">
+          <div className="flex items-center justify-between gap-4">
+            <div className="text-[0.72rem] uppercase tracking-[0.24em] text-gold/75">Season watch</div>
+            <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[0.66rem] uppercase tracking-[0.16em] text-white/55">
+              {raid.raid?.season ?? "--"}
+            </div>
+          </div>
+
+          <div className="mt-5 rounded-[18px] border border-white/8 bg-black/20 px-4 py-3">
+            {[
+              ["Current raid", raid.raid?.name ?? "--"],
+              ["Bosses visible", String(raid.bosses.length)],
+              ["World tracker", String((raid.world_first_tracker ?? []).length)],
+              ["Heatmap ready", raid.heatmap_ready ? "Yes" : "No"],
+            ].map(([label, value], index, rows) => (
+              <div
+                key={label}
+                className={`flex items-center justify-between gap-4 py-3 ${
+                  index < rows.length - 1 ? "border-b border-white/8" : ""
+                }`}
+              >
+                <span className="text-sm text-white/55">{label}</span>
+                <span className="text-sm font-semibold text-white">{value}</span>
               </div>
             ))}
           </div>
-        </div>
-      </section>
 
-      <section className="grid gap-6 xl:grid-cols-[0.82fr_1.18fr]">
-        <div className="panel panel-section-lg">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="eyebrow">Astral traffic</p>
-              <h2 className="mt-4 section-title">Live activity arrives like dispatches from across the realms.</h2>
-            </div>
-            <div className="rune-pill">Realm echoes</div>
-          </div>
-
-          <div className="mt-6 space-y-4">
-            {activity.items.map((item: { type: string; title: string; subtitle?: string; created_at: string }) => (
-              <div key={`${item.type}-${item.title}-${item.created_at}`} className="data-slab">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">{item.type}</div>
-                    <div className="mt-3 text-[1.15rem] leading-tight text-white sm:text-[1.4rem]" style={{ fontFamily: "var(--font-display)" }}>
-                      {item.title}
-                    </div>
-                  </div>
-                  <div className="rune-chip">Live</div>
-                </div>
-                {item.subtitle ? <div className="mt-3 text-sm leading-7 text-white/62">{item.subtitle}</div> : null}
-              </div>
-            ))}
+          <div className="mt-5 flex flex-wrap gap-3">
+            <Link href="/search" className="arcane-button">
+              Search archive
+            </Link>
+            <Link href="/compare" className="arcane-button-secondary">
+              Compare entities
+            </Link>
           </div>
         </div>
+      </div>
+    </section>
+  );
+}
 
-        <div className="grid gap-6">
-          <div className="panel panel-section-lg panel-legendary">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="eyebrow">Dungeon omens</p>
-                <h2 className="mt-4 section-title">Mythic+ pressure displayed as a seasonal pulse chamber.</h2>
-              </div>
-              <div className="rune-pill">Season pressure</div>
-            </div>
+export default async function HomePage() {
+  const { copy } = await getDictionary();
 
-            <div className="mt-6 grid gap-4 lg:grid-cols-[0.86fr_1.14fr]">
-              <div className="data-slab border-sky-300/20">
-                <div className="text-[0.66rem] uppercase tracking-[0.34em] text-sky-100/78">Timed ratio</div>
-                <div className="mt-4 score-number tone-arcane">{mythic.meta_analysis?.timed_ratio ?? 0}%</div>
-                <p className="mt-4 text-sm leading-7 text-white/62">
-                  A quick reading of how forgiving the current season feels across active dungeon traffic.
-                </p>
-              </div>
+  return (
+    <div className="page-shell space-y-12">
+      <Suspense fallback={<HomeSectionSkeleton height="h-[420px]" />}>
+        <HomeHeroSection copy={copy.hero} />
+      </Suspense>
 
-              <div className="data-slab border-gold/18">
-                <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Most played dungeons</div>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {popularDungeons.map((name: string) => (
-                    <span key={name} className="rune-chip">
-                      {name}
-                    </span>
-                  ))}
-                </div>
-                <p className="mt-4 text-sm leading-7 text-white/62">
-                  The route layer is framed as strategic movement across the season, not just a popularity list.
-                </p>
-              </div>
-            </div>
-          </div>
+      <Suspense fallback={<HomeSectionSkeleton height="h-[520px]" />}>
+        <HomeRankingSection />
+      </Suspense>
 
-          <div className="panel panel-section">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <p className="eyebrow">Expedition routes</p>
-                <h3 className="mt-4 text-[1.55rem] leading-tight text-white sm:text-[2rem]" style={{ fontFamily: "var(--font-display)" }}>
-                  Move between scouting, compare, and control without breaking the mood of the Nexus.
-                </h3>
-              </div>
-
-              <div className="flex flex-wrap gap-3">
-                <Link href="/compare" className="arcane-button">
-                  Open compare chamber
-                </Link>
-                <Link href="/admin" className="arcane-button-secondary">
-                  Enter admin sanctum
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <Suspense fallback={<HomeSectionSkeleton height="h-[360px]" />}>
+        <HomeIntelligenceSection />
+      </Suspense>
     </div>
   );
 }

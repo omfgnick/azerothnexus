@@ -1,8 +1,9 @@
 import Link from "next/link";
 
 import { AdminBackupControls } from "@/components/admin-backup-controls";
+import { DataStateBanner } from "@/components/data-state-banner";
 import { AdminRefreshAllButton } from "@/components/admin-refresh-all-button";
-import { getAdminDashboard } from "@/lib/api";
+import { getAdminDashboard, isFallbackData } from "@/lib/api";
 
 function formatTime(value?: string | null) {
   if (!value) return "N/A";
@@ -17,6 +18,13 @@ export default async function AdminPage() {
 
   return (
     <div className="space-y-8">
+      {isFallbackData(dashboard) ? (
+        <DataStateBanner
+          title="Admin dashboard indisponivel"
+          description="O frontend admin nao conseguiu buscar o dashboard protegido neste ciclo. Revise o login e a configuracao operacional do web server."
+          error={dashboard._requestError}
+        />
+      ) : null}
       <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
         {[
           ["Tracked guilds", String(dashboard.tracked_counts.guilds)],
@@ -227,9 +235,6 @@ export default async function AdminPage() {
           Protected header
         </h2>
         <pre className="mt-5 overflow-x-auto rounded-[1.6rem] border border-white/10 bg-black/30 p-4 text-sm text-white/80">{`X-Admin-Token: your-ops-token`}</pre>
-        {dashboard.missing_admin_token ? (
-          <p className="mt-4 text-sm text-rose-200/80">Configure `ADMIN_API_TOKEN` in the web environment to enable this dashboard.</p>
-        ) : null}
       </div>
     </div>
   );
