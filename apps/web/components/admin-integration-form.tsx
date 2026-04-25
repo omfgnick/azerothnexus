@@ -12,23 +12,64 @@ type AdminIntegrationFormProps = {
   initialSettings: IntegrationSettings;
 };
 
-const providerMeta: Record<string, { title: string; copy: string }> = {
+const providerMeta: Record<
+  string,
+  {
+    title: string;
+    copy: string;
+    authMode: string;
+    visitorModel: string;
+    requirements: string;
+    notes: string[];
+  }
+> = {
   blizzard: {
     title: "Blizzard Battle.net",
-    copy: "Armory, guild profile, character summary, and official Mythic+ data.",
+    copy: "Armory, guild profile, character summary, equipment, talents, and official Mythic+ data.",
+    authMode: "Server-side OAuth app credentials",
+    visitorModel: "No visitor login",
+    requirements: "Client ID + Client Secret",
+    notes: [
+      "Visitors do not authenticate. Only the server uses Blizzard credentials.",
+      "If a character profile is stale on Blizzard, the next server refresh will retry automatically.",
+    ],
   },
   raiderio: {
     title: "Raider.IO",
-    copy: "Public score, roster, progression race, and competitive activity signals.",
+    copy: "Public score, roster, raid race, progression, and competitive activity signals.",
+    authMode: "Public API",
+    visitorModel: "No visitor login",
+    requirements: "API base URL only",
+    notes: [
+      "No secret is required in the current integration flow.",
+      "Returned data still depends on public Blizzard-facing visibility on the player side.",
+    ],
   },
   warcraftlogs: {
     title: "Warcraft Logs",
-    copy: "OAuth + GraphQL for parses, zone rankings, and raid performance signals.",
+    copy: "Public parse averages, zone rankings, and raid performance signals.",
+    authMode: "Server-side OAuth client credentials",
+    visitorModel: "No visitor login",
+    requirements: "Client ID + Client Secret",
+    notes: [
+      "The site stays public. Only your server authenticates against Warcraft Logs.",
+      "Private logs still depend on the source permissions defined in Warcraft Logs.",
+    ],
   },
 };
 
 function cloneSettings(settings: IntegrationSettings): IntegrationSettings {
   return JSON.parse(JSON.stringify(settings)) as IntegrationSettings;
+}
+
+function statusTone(enabled: boolean, configured: boolean) {
+  if (!enabled) {
+    return "border-white/10 bg-white/5 text-white/60";
+  }
+  if (configured) {
+    return "border-emerald-400/30 bg-emerald-500/10 text-emerald-100";
+  }
+  return "border-amber-400/30 bg-amber-500/10 text-amber-100";
 }
 
 export function AdminIntegrationForm({ initialSettings }: AdminIntegrationFormProps) {
@@ -84,7 +125,7 @@ export function AdminIntegrationForm({ initialSettings }: AdminIntegrationFormPr
     }
 
     setForm(cloneSettings(payload));
-    setMessage("Integracoes salvas. Os proximos syncs ja passam a usar a configuracao nova.");
+    setMessage("Integracoes salvas. Os proximos refreshes ja passam a usar a configuracao nova.");
     startTransition(() => {
       router.refresh();
       setIsWorking(false);
@@ -101,34 +142,93 @@ export function AdminIntegrationForm({ initialSettings }: AdminIntegrationFormPr
               Provider vault
             </h2>
             <p className="mt-4 max-w-3xl text-sm leading-7 text-white/70">
-              Secrets are not rendered back to the browser. If a secret field stays empty, the current stored value is preserved.
+              The site remains public for visitors. These credentials are server-side only and are used by scheduled refreshes, admin refreshes, and background syncs.
             </p>
           </div>
-          <button type="submit" disabled={isPending || isWorking} className="arcane-button min-h-[48px] px-6 py-3 disabled:cursor-not-allowed disabled:opacity-60">
+          <button
+            type="submit"
+            disabled={isPending || isWorking}
+            className="arcane-button min-h-[48px] px-6 py-3 disabled:cursor-not-allowed disabled:opacity-60"
+          >
             {isPending || isWorking ? "Salvando..." : "Salvar integracoes"}
           </button>
         </div>
 
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
+          <div className="data-slab">
+            <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Visitor model</div>
+            <div className="mt-3 text-2xl text-white" style={{ fontFamily: "var(--font-display)" }}>
+              Public consultation
+            </div>
+            <p className="mt-3 text-sm leading-6 text-white/60">No end-user login flow is required for guild or character lookup.</p>
+          </div>
+          <div className="data-slab">
+            <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Secret handling</div>
+            <div className="mt-3 text-2xl text-white" style={{ fontFamily: "var(--font-display)" }}>
+              Server-side only
+            </div>
+            <p className="mt-3 text-sm leading-6 text-white/60">Secret values are masked in the browser. Empty secret fields preserve the stored value.</p>
+          </div>
+          <div className="data-slab">
+            <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Sync model</div>
+            <div className="mt-3 text-2xl text-white" style={{ fontFamily: "var(--font-display)" }}>
+              Auto every 10 min
+            </div>
+            <p className="mt-3 text-sm leading-6 text-white/60">Manual refresh and the background cycle will pick up the new configuration after save.</p>
+          </div>
+        </div>
+
         <div className="mt-6 grid gap-6 xl:grid-cols-3">
           {Object.entries(form.providers).map(([providerKey, provider]) => {
+            const meta = providerMeta[providerKey] ?? {
+              title: providerKey,
+              copy: "External integration.",
+              authMode: "Server-side integration",
+              visitorModel: "No visitor login",
+              requirements: "Configuration required",
+              notes: ["This integration is managed from the admin sanctum."],
+            };
+            const enabled = Boolean(provider.enabled);
+            const configured = Boolean(provider.configured);
             const secretConfigured = Boolean(provider.client_secret_configured);
+
             return (
               <section key={providerKey} className="data-slab space-y-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="text-2xl text-white" style={{ fontFamily: "var(--font-display)" }}>
-                      {providerMeta[providerKey]?.title ?? providerKey}
+                      {meta.title}
                     </div>
-                    <p className="mt-2 text-sm leading-6 text-white/60">{providerMeta[providerKey]?.copy ?? "External integration."}</p>
+                    <p className="mt-2 text-sm leading-6 text-white/60">{meta.copy}</p>
                   </div>
                   <label className="flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-white/70">
                     <input
                       type="checkbox"
-                      checked={Boolean(provider.enabled)}
+                      checked={enabled}
                       onChange={(event) => updateProvider(providerKey, "enabled", event.target.checked)}
                     />
                     Enabled
                   </label>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <span className={`rounded-full border px-3 py-1 text-[0.68rem] uppercase tracking-[0.18em] ${statusTone(enabled, configured)}`}>
+                    {!enabled ? "Disabled" : configured ? "Configured" : "Needs setup"}
+                  </span>
+                  <span className="rune-chip">{meta.visitorModel}</span>
+                  <span className="rune-chip">{meta.authMode}</span>
+                </div>
+
+                <div className="rounded-[1.2rem] border border-white/10 bg-black/20 p-4">
+                  <div className="text-[0.66rem] uppercase tracking-[0.3em] text-gold/75">Requirements</div>
+                  <div className="mt-3 text-lg text-white" style={{ fontFamily: "var(--font-display)" }}>
+                    {meta.requirements}
+                  </div>
+                  <div className="mt-3 space-y-2 text-sm leading-6 text-white/58">
+                    {meta.notes.map((note) => (
+                      <p key={note}>{note}</p>
+                    ))}
+                  </div>
                 </div>
 
                 {"region" in provider ? (

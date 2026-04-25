@@ -28,7 +28,7 @@ export function AdminRefreshAllButton() {
 
     const guilds = Number(payload?.refreshed?.guilds ?? 0);
     const characters = Number(payload?.refreshed?.characters ?? 0);
-    setMessage(`Refresh concluído: ${guilds} guilds e ${characters} personagens.`);
+    setMessage(`Refresh concluido: ${guilds} guilds e ${characters} personagens.`);
     startTransition(() => {
       router.refresh();
       setIsWorking(false);
@@ -37,7 +37,12 @@ export function AdminRefreshAllButton() {
 
   return (
     <div className="flex flex-col gap-2">
-      <button type="button" onClick={handleRefreshAll} disabled={isPending || isWorking} className="arcane-button-secondary min-h-[48px] px-6 py-3 disabled:cursor-not-allowed disabled:opacity-60">
+      <button
+        type="button"
+        onClick={handleRefreshAll}
+        disabled={isPending || isWorking}
+        className="arcane-button-secondary min-h-[48px] px-6 py-3 disabled:cursor-not-allowed disabled:opacity-60"
+      >
         {isPending || isWorking ? "Sincronizando..." : "Atualizar tudo agora"}
       </button>
       {message ? <p className="text-xs uppercase tracking-[0.16em] text-emerald-200/80">{message}</p> : null}
