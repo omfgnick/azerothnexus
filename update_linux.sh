@@ -138,3 +138,4 @@ echo "Mode: $MODE"
 if [[ "$SEED_DEMO_DATA" == "1" ]]; then
   echo "Demo seed: enabled"
 fi
+echo "If this update introduced new admin features, open /admin to configure integrations, backups, and logs."

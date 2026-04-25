@@ -74,5 +74,5 @@ docker compose "${DOWN_ARGS[@]}"
 
 echo "Stack removed."
 if [[ "$PURGE_DATA" == "1" ]]; then
-  echo "Database volume and persistent data were also removed."
+  echo "Database volume, backup volume, and persistent data were also removed."
 fi

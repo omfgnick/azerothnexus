@@ -9,6 +9,9 @@ COMPOSE_FILE="docker-compose.yml"
 MODE="development"
 MODE_EXPLICIT=0
 SEED_DEMO_DATA="${SEED_DEMO_DATA:-0}"
+ENV_CREATED=0
+ADMIN_TOKEN_GENERATED=0
+ADMIN_TOKEN_WARNING=0
 
 usage() {
   cat <<EOF
@@ -39,6 +42,74 @@ load_env_value() {
   fi
 
   echo "$default_value"
+}
+
+set_env_value() {
+  local key="$1"
+  local value="$2"
+  local tmp_file
+
+  tmp_file="$(mktemp)"
+  awk -F= -v key="$key" -v value="$value" '
+    BEGIN { updated = 0 }
+    index($0, key "=") == 1 {
+      if (!updated) {
+        print key "=" value
+        updated = 1
+      }
+      next
+    }
+    { print }
+    END {
+      if (!updated) {
+        print key "=" value
+      }
+    }
+  ' .env > "$tmp_file"
+  mv "$tmp_file" .env
+}
+
+generate_admin_token() {
+  if command -v openssl >/dev/null 2>&1; then
+    openssl rand -hex 24
+    return
+  fi
+
+  if [[ -r /dev/urandom ]] && command -v od >/dev/null 2>&1; then
+    od -An -tx1 -N24 /dev/urandom | tr -d ' \n'
+    return
+  fi
+
+  printf '%s%s%s%s' "$RANDOM" "$RANDOM" "$(date +%s)" "$RANDOM"
+}
+
+ensure_runtime_env() {
+  local current_token
+  local backup_dir
+  local nginx_port
+
+  backup_dir="$(load_env_value "BACKUP_DIR" "")"
+  if [[ -z "$backup_dir" ]]; then
+    set_env_value "BACKUP_DIR" "/var/backups/azerothnexus"
+  fi
+
+  if [[ "$MODE" == "production" ]]; then
+    nginx_port="$(load_env_value "NGINX_PORT" "")"
+    if [[ -z "$nginx_port" ]]; then
+      set_env_value "NGINX_PORT" "80"
+    fi
+  fi
+
+  current_token="$(load_env_value "ADMIN_API_TOKEN" "")"
+  if [[ -z "$current_token" ]]; then
+    set_env_value "ADMIN_API_TOKEN" "$(generate_admin_token)"
+    ADMIN_TOKEN_GENERATED=1
+  elif [[ "$ENV_CREATED" == "1" && "$current_token" == "change-this-ops-token" ]]; then
+    set_env_value "ADMIN_API_TOKEN" "$(generate_admin_token)"
+    ADMIN_TOKEN_GENERATED=1
+  elif [[ "$current_token" == "change-this-ops-token" ]]; then
+    ADMIN_TOKEN_WARNING=1
+  fi
 }
 
 while [[ $# -gt 0 ]]; do
@@ -97,7 +168,10 @@ fi
 if [[ ! -f .env ]]; then
   cp .env.example .env
   echo "Created .env from .env.example"
+  ENV_CREATED=1
 fi
+
+ensure_runtime_env
 
 printf '%s\n' "$MODE" > "$MODE_FILE"
 
@@ -110,14 +184,25 @@ if [[ "$MODE" == "production" ]]; then
   NGINX_PORT_VALUE="$(load_env_value "NGINX_PORT" "80")"
   if [[ "$NGINX_PORT_VALUE" == "80" ]]; then
     echo "Public entrypoint: http://localhost"
+    echo "Admin UI: http://localhost/admin"
   else
     echo "Public entrypoint: http://localhost:${NGINX_PORT_VALUE}"
+    echo "Admin UI: http://localhost:${NGINX_PORT_VALUE}/admin"
   fi
 else
   WEB_PORT_VALUE="$(load_env_value "WEB_PORT" "3000")"
   API_PORT_VALUE="$(load_env_value "API_PORT" "8000")"
   echo "Frontend: http://localhost:${WEB_PORT_VALUE}"
+  echo "Admin UI: http://localhost:${WEB_PORT_VALUE}/admin"
   echo "API docs: http://localhost:${API_PORT_VALUE}/docs"
+fi
+
+echo "Backup storage: $(load_env_value "BACKUP_DIR" "/var/backups/azerothnexus") (Docker volume: backup_data)"
+
+if [[ "$ADMIN_TOKEN_GENERATED" == "1" ]]; then
+  echo "Generated ADMIN_API_TOKEN and stored it in .env"
+elif [[ "$ADMIN_TOKEN_WARNING" == "1" ]]; then
+  echo "Warning: ADMIN_API_TOKEN is still using the default placeholder. Change it in .env before exposing the stack publicly."
 fi
 
 if [[ "$SEED_DEMO_DATA" == "1" ]]; then
