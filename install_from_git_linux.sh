@@ -8,6 +8,13 @@ SEED_DEMO_DATA="${SEED_DEMO_DATA:-0}"
 MODE="production"
 INSTALL_ARGS=()
 
+normalize_repo_url() {
+  local value="$1"
+  value="${value%/}"
+  value="${value%.git}"
+  echo "$value"
+}
+
 usage() {
   cat <<EOF
 Usage: ./install_from_git_linux.sh [--dir PATH] [--branch NAME] [--repo URL] [--prod|--dev] [--seed-demo-data]
@@ -105,8 +112,55 @@ fi
 
 if [[ -d "$INSTALL_DIR/.git" ]]; then
   echo "A Git checkout already exists at $INSTALL_DIR"
-  echo "Use ./update_linux.sh there to pull the latest version." >&2
-  exit 1
+
+  CURRENT_REMOTE="$(git -C "$INSTALL_DIR" remote get-url origin 2>/dev/null || true)"
+  if [[ -n "$CURRENT_REMOTE" && "$(normalize_repo_url "$CURRENT_REMOTE")" != "$(normalize_repo_url "$REPO_URL")" ]]; then
+    echo "Existing checkout origin does not match the requested repository." >&2
+    echo "Current origin: $CURRENT_REMOTE" >&2
+    echo "Requested repo: $REPO_URL" >&2
+    echo "Use --dir with a different destination or update this checkout manually." >&2
+    exit 1
+  fi
+
+  cd "$INSTALL_DIR"
+  git config core.fileMode false
+
+  for script in install_linux.sh update_linux.sh uninstall_linux.sh install.sh uninstall.sh; do
+    if [[ -f "./$script" && ! -x "./$script" ]]; then
+      chmod +x "./$script"
+    fi
+  done
+
+  if [[ -n "$BRANCH" ]]; then
+    if [[ -n "$(git status --porcelain)" ]]; then
+      echo "Existing checkout has local changes. Clean the working tree before using the Git bootstrap updater." >&2
+      exit 1
+    fi
+
+    CURRENT_BRANCH="$(git branch --show-current 2>/dev/null || true)"
+    if [[ -n "$CURRENT_BRANCH" && "$CURRENT_BRANCH" != "$BRANCH" ]]; then
+      echo "Switching existing checkout from $CURRENT_BRANCH to $BRANCH"
+      git fetch origin "$BRANCH"
+      if git show-ref --verify --quiet "refs/heads/$BRANCH"; then
+        git checkout "$BRANCH"
+      else
+        git checkout -b "$BRANCH" --track "origin/$BRANCH"
+      fi
+    fi
+  fi
+
+  echo "Updating Azeroth Nexus in place"
+  ./update_linux.sh "${INSTALL_ARGS[@]}"
+
+  echo
+  echo "Update complete."
+  echo "Project directory: $INSTALL_DIR"
+  echo "Mode: $MODE"
+  if [[ "$SEED_DEMO_DATA" == "1" ]]; then
+    echo "Demo seed: enabled"
+  fi
+  echo "Use ./update_linux.sh inside the project directory to pull future updates."
+  exit 0
 fi
 
 if [[ -d "$INSTALL_DIR" ]] && [[ -n "$(find "$INSTALL_DIR" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null)" ]]; then

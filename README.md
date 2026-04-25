@@ -67,6 +67,8 @@ Production compose:
 
 The Git bootstrap installer uses production mode by default and remembers that mode for future `./update_linux.sh` runs. Production also defaults to `NGINX_PORT=80`, so the site opens without a port in the URL.
 
+If you run `install_from_git_linux.sh` again on a server that already has a Git checkout at the target path, it now updates that checkout in place automatically instead of aborting.
+
 The development stack keeps Postgres and Redis internal to Docker by default, so an existing local database on `5432` or Redis on `6379` will not block startup.
 
 On a fresh Linux install, `install_linux.sh` now generates:
@@ -178,7 +180,7 @@ docker compose exec api python /app/scripts/seed.py
 - Public-facing usage does not require login.
 - The provider clients can still read from environment variables, but the preferred operational flow is to manage them from `/admin/integrations`.
 - Public compare, history, and search views are now included to make the ranking product feel closer to a modern premium competitive dashboard.
-- `install_from_git_linux.sh` clones the repository first, then delegates to `install_linux.sh`.
+- `install_from_git_linux.sh` clones the repository first, then delegates to `install_linux.sh`. If the checkout already exists, it switches to update mode and runs `./update_linux.sh`.
 - `update_linux.sh` requires a clean working tree before running `git pull --ff-only` and rebuilding the stack.
 - Linux Git installs set `core.fileMode=false` locally so script permission bits do not dirty the checkout after bootstrap.
 - The selected Linux runtime mode is stored locally in `.azerothnexus-mode`, so updates keep using production or development consistently.
