@@ -3,13 +3,15 @@ import { ChampionSigilIcon, IconFrame, NexusCrestIcon } from "@/components/nexus
 import { ScenePanel } from "@/components/scene-panel";
 import { ScoreHistoryChart } from "@/components/score-history-chart";
 import { getCharacter, getCharacterHistory } from "@/lib/api";
+import { hasAdminSession } from "@/lib/admin-auth-server";
 
 export default async function CharacterPage({ params }: { params: Promise<{ region: string; realm: string; name: string }> }) {
   const resolved = await params;
   const realmLabel = resolved.realm.replace(/-/g, " ");
-  const [character, history] = await Promise.all([
+  const [character, history, canRefresh] = await Promise.all([
     getCharacter(resolved.region, resolved.realm, resolved.name),
-    getCharacterHistory(resolved.region, resolved.realm, resolved.name)
+    getCharacterHistory(resolved.region, resolved.realm, resolved.name),
+    hasAdminSession(),
   ]);
 
   return (
@@ -23,7 +25,9 @@ export default async function CharacterPage({ params }: { params: Promise<{ regi
               <p className="mt-6 max-w-3xl lead-copy">{character.rank_profile.explanation}</p>
               <div className="mt-8 flex flex-wrap items-center gap-3">
                 <div className="rune-pill">Auto refresh every 10 minutes</div>
-                <EntityRefreshButton entityType="character" region={resolved.region} realm={resolved.realm} name={character.name} pathName={resolved.name} />
+                {canRefresh ? (
+                  <EntityRefreshButton entityType="character" region={resolved.region} realm={resolved.realm} name={character.name} pathName={resolved.name} />
+                ) : null}
               </div>
             </div>
             <IconFrame className="hidden h-16 w-16 rounded-[1.45rem] md:inline-flex" tone="arcane">

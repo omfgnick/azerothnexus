@@ -1,10 +1,39 @@
+import { headers } from "next/headers";
 import { ReactNode } from "react";
 
 import { AdminSanctumNav } from "@/components/admin-sanctum-nav";
 import { IconFrame, NexusCrestIcon, WarboardSigilIcon } from "@/components/nexus-icons";
 import { ScenePanel } from "@/components/scene-panel";
+import { getLocale } from "@/lib/locale";
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
+export default async function AdminLayout({ children }: { children: ReactNode }) {
+  const requestHeaders = await headers();
+  const adminPathname = requestHeaders.get("x-admin-pathname");
+  const locale = await getLocale();
+
+  if (adminPathname === "/admin/login") {
+    return children;
+  }
+
+  const navLabels =
+    locale === "pt-BR"
+      ? {
+          overview: "Visao geral",
+          integrations: "Integracoes",
+          backups: "Backups",
+          logs: "Logs",
+          controls: "Controles do sanctum",
+          logout: "Sair",
+        }
+      : {
+          overview: "Overview",
+          integrations: "Integrations",
+          backups: "Backups",
+          logs: "Logs",
+          controls: "Sanctum controls",
+          logout: "Logout",
+        };
+
   return (
     <div className="page-shell space-y-8">
       <section className="grid gap-6 xl:grid-cols-[0.98fr_1.02fr]">
@@ -38,7 +67,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         />
       </section>
 
-      <AdminSanctumNav />
+      <AdminSanctumNav labels={navLabels} />
       {children}
     </div>
   );

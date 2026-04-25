@@ -17,3 +17,9 @@ class ProviderConfigUpdate(BaseModel):
 class IntegrationSettingsUpdate(BaseModel):
     providers: dict[str, ProviderConfigUpdate] = Field(default_factory=dict)
     feature_flags: dict[str, Any] = Field(default_factory=dict)
+
+
+class BackupRestoreRequest(BaseModel):
+    filename: str
+    replace_existing: bool = True
+    create_backup_before_restore: bool = True

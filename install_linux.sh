@@ -12,6 +12,10 @@ SEED_DEMO_DATA="${SEED_DEMO_DATA:-0}"
 ENV_CREATED=0
 ADMIN_TOKEN_GENERATED=0
 ADMIN_TOKEN_WARNING=0
+ADMIN_LOGIN_GENERATED=0
+ADMIN_SESSION_SECRET_GENERATED=0
+GENERATED_ADMIN_USERNAME=""
+GENERATED_ADMIN_PASSWORD=""
 
 usage() {
   cat <<EOF
@@ -83,10 +87,27 @@ generate_admin_token() {
   printf '%s%s%s%s' "$RANDOM" "$RANDOM" "$(date +%s)" "$RANDOM"
 }
 
+generate_admin_password() {
+  if command -v openssl >/dev/null 2>&1; then
+    openssl rand -base64 18 | tr -d '\n' | tr '/+=' 'xyz'
+    return
+  fi
+
+  if [[ -r /dev/urandom ]] && command -v od >/dev/null 2>&1; then
+    od -An -tx1 -N12 /dev/urandom | tr -d ' \n'
+    return
+  fi
+
+  printf 'admin-%s%s%s' "$RANDOM" "$(date +%s)" "$RANDOM"
+}
+
 ensure_runtime_env() {
   local current_token
   local backup_dir
   local nginx_port
+  local admin_username
+  local admin_password
+  local admin_session_secret
 
   backup_dir="$(load_env_value "BACKUP_DIR" "")"
   if [[ -z "$backup_dir" ]]; then
@@ -109,6 +130,27 @@ ensure_runtime_env() {
     ADMIN_TOKEN_GENERATED=1
   elif [[ "$current_token" == "change-this-ops-token" ]]; then
     ADMIN_TOKEN_WARNING=1
+  fi
+
+  admin_username="$(load_env_value "ADMIN_USERNAME" "")"
+  if [[ -z "$admin_username" ]]; then
+    admin_username="admin"
+    set_env_value "ADMIN_USERNAME" "$admin_username"
+  fi
+
+  admin_password="$(load_env_value "ADMIN_PASSWORD" "")"
+  if [[ -z "$admin_password" || "$admin_password" == "change-this-admin-password" ]]; then
+    admin_password="$(generate_admin_password)"
+    set_env_value "ADMIN_PASSWORD" "$admin_password"
+    ADMIN_LOGIN_GENERATED=1
+    GENERATED_ADMIN_USERNAME="$admin_username"
+    GENERATED_ADMIN_PASSWORD="$admin_password"
+  fi
+
+  admin_session_secret="$(load_env_value "ADMIN_SESSION_SECRET" "")"
+  if [[ -z "$admin_session_secret" ]]; then
+    set_env_value "ADMIN_SESSION_SECRET" "$(generate_admin_token)"
+    ADMIN_SESSION_SECRET_GENERATED=1
   fi
 }
 
@@ -203,6 +245,16 @@ if [[ "$ADMIN_TOKEN_GENERATED" == "1" ]]; then
   echo "Generated ADMIN_API_TOKEN and stored it in .env"
 elif [[ "$ADMIN_TOKEN_WARNING" == "1" ]]; then
   echo "Warning: ADMIN_API_TOKEN is still using the default placeholder. Change it in .env before exposing the stack publicly."
+fi
+
+if [[ "$ADMIN_LOGIN_GENERATED" == "1" ]]; then
+  echo "Generated admin login credentials and stored them in .env"
+  echo "Admin username: ${GENERATED_ADMIN_USERNAME}"
+  echo "Admin password: ${GENERATED_ADMIN_PASSWORD}"
+fi
+
+if [[ "$ADMIN_SESSION_SECRET_GENERATED" == "1" ]]; then
+  echo "Generated ADMIN_SESSION_SECRET and stored it in .env"
 fi
 
 if [[ "$SEED_DEMO_DATA" == "1" ]]; then

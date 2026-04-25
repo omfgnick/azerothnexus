@@ -3,13 +3,15 @@ import { GuildSigilIcon, IconFrame, RaidSigilIcon } from "@/components/nexus-ico
 import { ScenePanel } from "@/components/scene-panel";
 import { ScoreHistoryChart } from "@/components/score-history-chart";
 import { getGuild, getGuildHistory } from "@/lib/api";
+import { hasAdminSession } from "@/lib/admin-auth-server";
 
 export default async function GuildPage({ params }: { params: Promise<{ region: string; realm: string; guild: string }> }) {
   const resolved = await params;
   const realmLabel = resolved.realm.replace(/-/g, " ");
-  const [guild, history] = await Promise.all([
+  const [guild, history, canRefresh] = await Promise.all([
     getGuild(resolved.region, resolved.realm, resolved.guild),
-    getGuildHistory(resolved.region, resolved.realm, resolved.guild)
+    getGuildHistory(resolved.region, resolved.realm, resolved.guild),
+    hasAdminSession(),
   ]);
 
   return (
@@ -23,7 +25,9 @@ export default async function GuildPage({ params }: { params: Promise<{ region: 
               <p className="mt-6 max-w-3xl lead-copy">{guild.rank_profile.explanation}</p>
               <div className="mt-8 flex flex-wrap items-center gap-3">
                 <div className="rune-pill">Auto refresh every 10 minutes</div>
-                <EntityRefreshButton entityType="guild" region={resolved.region} realm={resolved.realm} name={guild.name} pathName={resolved.guild} />
+                {canRefresh ? (
+                  <EntityRefreshButton entityType="guild" region={resolved.region} realm={resolved.realm} name={guild.name} pathName={resolved.guild} />
+                ) : null}
               </div>
             </div>
             <IconFrame className="hidden h-16 w-16 rounded-[1.45rem] md:inline-flex" tone="gold">

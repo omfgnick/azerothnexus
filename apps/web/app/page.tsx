@@ -11,8 +11,10 @@ import { RankingTable } from "@/components/ranking-table";
 import { ScenePanel } from "@/components/scene-panel";
 import { StatCard } from "@/components/stat-card";
 import { getActivityFeed, getGuildLadder, getMythicDashboard, getRaidDashboard } from "@/lib/api";
+import { getDictionary } from "@/lib/locale";
 
 export default async function HomePage() {
+  const { copy } = await getDictionary();
   const [ladder, raid, mythic, activity] = await Promise.all([
     getGuildLadder(),
     getRaidDashboard(),
@@ -24,7 +26,7 @@ export default async function HomePage() {
 
   return (
     <div className="page-shell space-y-10">
-      <Hero />
+      <Hero copy={copy.hero} />
 
       <section className="grid gap-5 md:grid-cols-4">
         <StatCard

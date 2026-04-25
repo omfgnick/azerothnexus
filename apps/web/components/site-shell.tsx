@@ -1,26 +1,46 @@
 import Link from "next/link";
 import { ReactNode } from "react";
 
+import { LocaleToggle } from "@/components/locale-toggle";
 import {
-  CompareSigilIcon,
   ChampionSigilIcon,
+  CompareSigilIcon,
   GuildSigilIcon,
   IconFrame,
   NexusCrestIcon,
   SearchSigilIcon,
-  WarboardSigilIcon
+  WarboardSigilIcon,
 } from "@/components/nexus-icons";
+import type { SupportedLocale } from "@/lib/locale";
 
-const navLinks = [
-  { href: "/rankings", label: "Rankings", icon: WarboardSigilIcon },
-  { href: "/search", label: "Search", icon: SearchSigilIcon },
-  { href: "/compare", label: "Compare", icon: CompareSigilIcon },
-  { href: "/guild/us/stormrage/void-vanguard", label: "Guilds", icon: GuildSigilIcon },
-  { href: "/character/us/stormrage/Aethryl", label: "Characters", icon: ChampionSigilIcon },
-  { href: "/admin", label: "Admin", icon: NexusCrestIcon }
-];
+type SiteShellProps = {
+  children: ReactNode;
+  locale: SupportedLocale;
+  copy: {
+    eyebrow: string;
+    summary: string;
+    status: string;
+    nav: {
+      rankings: string;
+      search: string;
+      compare: string;
+      guilds: string;
+      characters: string;
+      admin: string;
+    };
+  };
+};
 
-export function SiteShell({ children }: { children: ReactNode }) {
+export function SiteShell({ children, locale, copy }: SiteShellProps) {
+  const navLinks = [
+    { href: "/rankings", label: copy.nav.rankings, icon: WarboardSigilIcon },
+    { href: "/search", label: copy.nav.search, icon: SearchSigilIcon },
+    { href: "/compare", label: copy.nav.compare, icon: CompareSigilIcon },
+    { href: "/guild/us/stormrage/void-vanguard", label: copy.nav.guilds, icon: GuildSigilIcon },
+    { href: "/character/us/stormrage/Aethryl", label: copy.nav.characters, icon: ChampionSigilIcon },
+    { href: "/admin", label: copy.nav.admin, icon: NexusCrestIcon },
+  ];
+
   return (
     <div className="relative isolate min-h-screen">
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
@@ -41,21 +61,22 @@ export function SiteShell({ children }: { children: ReactNode }) {
                   <NexusCrestIcon className="h-9 w-9 transition group-hover:scale-105" />
                 </IconFrame>
                 <div>
-                  <div className="eyebrow text-[0.64rem]">Arcane Observatory Interface</div>
+                  <div className="eyebrow text-[0.64rem]">{copy.eyebrow}</div>
                   <div
                     className="mt-3 text-xl tracking-[0.34em] text-gold sm:text-2xl"
                     style={{ fontFamily: "var(--font-display)" }}
                   >
                     AZEROTH NEXUS
                   </div>
-                  <p className="mt-2 max-w-xl text-sm text-white/60">
-                    A war-room for guild momentum, raid omens, roster scouting, and character power with a stronger Azerothian identity.
-                  </p>
+                  <p className="mt-2 max-w-xl text-sm text-white/60">{copy.summary}</p>
                 </div>
               </Link>
 
               <div className="flex flex-col gap-3 lg:items-end">
-                <div className="rune-pill">Astral lattice online</div>
+                <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+                  <div className="rune-pill">{copy.status}</div>
+                  <LocaleToggle locale={locale} />
+                </div>
                 <nav className="flex flex-wrap gap-2 lg:justify-end">
                   {navLinks.map((link) => (
                     <Link key={link.href} href={link.href} className="nav-link">

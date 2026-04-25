@@ -6,13 +6,22 @@ import { motion } from "framer-motion";
 import { ArchiveSigilIcon, IconFrame, NexusCrestIcon, WarboardSigilIcon } from "@/components/nexus-icons";
 import { SearchCommandPalette } from "@/components/search-command-palette";
 
-const observatoryReadings = [
-  { label: "Guild war rooms", value: "18.4K", detail: "Tracked entities primed for scouting" },
-  { label: "Constellation pulse", value: "Live", detail: "Raid, Mythic+, and roster signals updated" },
-  { label: "Runes in motion", value: "24/7", detail: "Search, rankings, and progression under watch" }
-];
+type HeroProps = {
+  copy: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    readings: Array<{ label: string; detail: string }>;
+    observatoryEyebrow: string;
+    observatoryTitle: string;
+    warboardLabel: string;
+    warboardDetail: string;
+    archiveLabel: string;
+    archiveDetail: string;
+  };
+};
 
-export function Hero() {
+export function Hero({ copy }: HeroProps) {
   return (
     <section className="panel panel-section-lg section-grid">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_22%,rgba(110,203,255,0.14),transparent_0_24%),radial-gradient(circle_at_82%_18%,rgba(214,190,144,0.14),transparent_0_24%),radial-gradient(circle_at_70%_68%,rgba(122,104,255,0.12),transparent_0_28%)]" />
@@ -23,7 +32,7 @@ export function Hero() {
       <div className="relative grid gap-10 xl:grid-cols-[1.02fr_0.98fr] xl:items-center">
         <div className="max-w-4xl">
           <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="eyebrow">
-            Arcane Observatory
+            {copy.eyebrow}
           </motion.p>
 
           <motion.h1
@@ -32,7 +41,7 @@ export function Hero() {
             transition={{ delay: 0.08 }}
             className="mt-6 display-title"
           >
-            Azeroth Nexus charts the currents of Azeroth before the realm can name them.
+            {copy.title}
           </motion.h1>
 
           <motion.p
@@ -41,7 +50,7 @@ export function Hero() {
             transition={{ delay: 0.16 }}
             className="mt-6 max-w-3xl lead-copy"
           >
-            An epic observatory for guild momentum, raid progression, Mythic+ shifts, and character power. The interface now has places, artifacts, and signatures that feel like they belong to Azeroth Nexus instead of a generic dashboard.
+            {copy.description}
           </motion.p>
 
           <motion.div
@@ -50,10 +59,10 @@ export function Hero() {
             transition={{ delay: 0.24 }}
             className="mt-8 grid gap-4 md:grid-cols-3"
           >
-            {observatoryReadings.map((reading) => (
+            {copy.readings.map((reading, index) => (
               <div key={reading.label} className="data-slab">
                 <div className="text-[0.7rem] uppercase tracking-[0.32em] text-gold/75">{reading.label}</div>
-                <div className="mt-3 score-number tone-gold">{reading.value}</div>
+                <div className="mt-3 score-number tone-gold">{index === 0 ? "18.4K" : index === 1 ? "Live" : "24/7"}</div>
                 <p className="mt-3 text-sm text-white/60">{reading.detail}</p>
               </div>
             ))}
@@ -77,6 +86,7 @@ export function Hero() {
                 alt="Moonlit Azeroth Nexus observatory overlooking arcane beams and a celestial skyline."
                 fill
                 priority
+                quality={96}
                 sizes="(max-width: 1280px) 100vw, 48vw"
                 className="object-cover"
               />
@@ -86,8 +96,8 @@ export function Hero() {
               <div className="relative z-10 flex h-full flex-col justify-between gap-8 p-6 md:p-8">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="eyebrow">Azeroth Nexus</p>
-                    <h2 className="mt-5 section-title max-w-lg">A signature observatory with real places, art, and iconography.</h2>
+                    <p className="eyebrow">{copy.observatoryEyebrow}</p>
+                    <h2 className="mt-5 section-title max-w-lg">{copy.observatoryTitle}</h2>
                   </div>
                   <IconFrame className="h-16 w-16 rounded-[1.45rem]" tone="gold">
                     <NexusCrestIcon className="h-8 w-8" />
@@ -101,11 +111,11 @@ export function Hero() {
                         <WarboardSigilIcon className="h-5 w-5" />
                       </IconFrame>
                       <div>
-                        <div className="text-[0.62rem] uppercase tracking-[0.34em] text-gold/70">Warboard focus</div>
+                        <div className="text-[0.62rem] uppercase tracking-[0.34em] text-gold/70">{copy.warboardLabel}</div>
                         <div className="mt-3 text-2xl text-gold" style={{ fontFamily: "var(--font-display)" }}>
                           Guild Radar
                         </div>
-                        <p className="mt-3 text-sm text-white/60">Runic trails and strongholds make the ranking layer feel like a live command chamber.</p>
+                        <p className="mt-3 text-sm text-white/60">{copy.warboardDetail}</p>
                       </div>
                     </div>
                   </div>
@@ -116,11 +126,11 @@ export function Hero() {
                         <ArchiveSigilIcon className="h-5 w-5" />
                       </IconFrame>
                       <div>
-                        <div className="text-[0.62rem] uppercase tracking-[0.34em] text-sky-200/80">Archive focus</div>
+                        <div className="text-[0.62rem] uppercase tracking-[0.34em] text-sky-200/80">{copy.archiveLabel}</div>
                         <div className="mt-3 text-2xl text-sky-100" style={{ fontFamily: "var(--font-display)" }}>
                           Scrying Desk
                         </div>
-                        <p className="mt-3 text-sm text-white/60">Search now reads like a ritual library, not a plain utility form dropped into the page.</p>
+                        <p className="mt-3 text-sm text-white/60">{copy.archiveDetail}</p>
                       </div>
                     </div>
                   </div>

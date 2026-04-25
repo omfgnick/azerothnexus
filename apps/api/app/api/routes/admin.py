@@ -3,7 +3,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.schemas.admin import IntegrationSettingsUpdate
+from app.schemas.admin import BackupRestoreRequest, IntegrationSettingsUpdate
 from app.security.admin_token import require_admin_token
 from app.services.admin_dashboard_service import AdminDashboardService
 from app.services.admin_settings_service import AdminSettingsService
@@ -133,6 +133,16 @@ async def list_backups(db: Session = Depends(get_db)):
 @router.post("/backups")
 async def create_backup(request: Request, db: Session = Depends(get_db)):
     return BackupService(db).create_backup(actor=AuditLogService.actor_from_request(request))
+
+
+@router.post("/backups/restore")
+async def restore_backup(payload: BackupRestoreRequest, request: Request, db: Session = Depends(get_db)):
+    return BackupService(db).restore_backup(
+        payload.filename,
+        replace_existing=payload.replace_existing,
+        create_backup_before_restore=payload.create_backup_before_restore,
+        actor=AuditLogService.actor_from_request(request),
+    )
 
 
 @router.get("/backups/{filename}")

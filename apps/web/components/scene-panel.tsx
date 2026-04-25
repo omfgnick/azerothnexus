@@ -41,6 +41,7 @@ export function ScenePanel({
           alt={imageAlt}
           fill
           priority={priority}
+          quality={96}
           sizes={layout === "portrait" ? "(max-width: 1024px) 100vw, 32vw" : "(max-width: 1024px) 100vw, 58vw"}
           className="object-cover transition duration-500 group-hover:scale-[1.03]"
         />

@@ -24,8 +24,10 @@ This package now includes:
 - persisted ranking snapshots with fallback to computed ladders
 - provider scaffolds for Blizzard, Raider.IO and Warcraft Logs
 - separate admin sanctum with overview, integrations, backups, and logs
+- admin login generated during Linux install, plus protected web-session access
 - runtime integration settings persisted from the admin UI
 - full JSON backup exports stored in a persistent Docker volume
+- backup restore with safety-backup options in the admin UI
 - request audit logging plus operational timeline for sync and admin actions
 - Linux install, Git bootstrap, update, and uninstall scripts
 - demo sync endpoint protected by `X-Admin-Token`
@@ -67,7 +69,14 @@ The Git bootstrap installer uses production mode by default and remembers that m
 
 The development stack keeps Postgres and Redis internal to Docker by default, so an existing local database on `5432` or Redis on `6379` will not block startup.
 
-On a fresh Linux install, `install_linux.sh` now generates a secure `ADMIN_API_TOKEN` automatically when `.env` is first created. The value is stored in `.env`, and the admin UI is available at `/admin`.
+On a fresh Linux install, `install_linux.sh` now generates:
+
+- `ADMIN_API_TOKEN`
+- `ADMIN_USERNAME`
+- `ADMIN_PASSWORD`
+- `ADMIN_SESSION_SECRET`
+
+These values are stored in `.env`, and the admin UI is available at `/admin`.
 
 Update an existing Git-based install:
 
@@ -102,6 +111,9 @@ Important variables:
 - `DATABASE_URL`
 - `REDIS_URL`
 - `ADMIN_API_TOKEN`
+- `ADMIN_USERNAME`
+- `ADMIN_PASSWORD`
+- `ADMIN_SESSION_SECRET`
 - `BACKUP_DIR`
 - `BLIZZARD_CLIENT_ID`
 - `BLIZZARD_CLIENT_SECRET`
@@ -122,7 +134,9 @@ From the admin area you can now:
 - trigger tracked-entity refreshes
 - configure Blizzard, Raider.IO, and Warcraft Logs integration settings
 - generate and download JSON backups
+- restore a listed backup, with options to replace existing data and create a safety backup first
 - inspect request logs, admin actions, and sync timeline events
+- switch the shell language between Portuguese and English
 
 The web app calls these routes server-side with `ADMIN_API_TOKEN`, so the browser never needs the raw token directly.
 
@@ -143,6 +157,7 @@ These endpoints are **not public**. Send the header `X-Admin-Token: <your token>
 - `GET /api/admin/logs`
 - `GET /api/admin/backups`
 - `POST /api/admin/backups`
+- `POST /api/admin/backups/restore`
 - `GET /api/admin/backups/{filename}`
 - `POST /api/admin/refresh/all`
 - `POST /api/admin/refresh/guild/{region}/{realm}/{guild_name}`

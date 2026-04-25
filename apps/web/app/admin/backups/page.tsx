@@ -1,4 +1,5 @@
 import { AdminBackupControls } from "@/components/admin-backup-controls";
+import { AdminBackupRestoreControls } from "@/components/admin-backup-restore-controls";
 import { IconFrame, GuildSigilIcon } from "@/components/nexus-icons";
 import { getAdminBackups } from "@/lib/api";
 
@@ -44,7 +45,7 @@ export default async function AdminBackupsPage() {
                 Database exports
               </h2>
               <p className="mt-4 max-w-2xl text-sm leading-7 text-white/70">
-                Cada backup gera um JSON completo com todas as tabelas conhecidas do Azeroth Nexus e registra a ação no `AuditLog`.
+                Cada backup gera um JSON completo com todas as tabelas conhecidas do Azeroth Nexus. Agora o painel tambem permite restaurar um snapshot listado com backup de seguranca opcional antes da troca.
               </p>
             </div>
             <IconFrame className="hidden h-14 w-14 rounded-[1.2rem] md:inline-flex" tone="gold">
@@ -82,9 +83,7 @@ export default async function AdminBackupsPage() {
                       </div>
                       <div className="mt-3 text-xs uppercase tracking-[0.16em] text-white/45 break-all">{String(item.sha256)}</div>
                     </div>
-                    <a href={`/api/admin/backups/${encodeURIComponent(String(item.filename))}`} className="arcane-button-secondary min-h-[46px] px-5 py-3">
-                      Download backup
-                    </a>
+                    <AdminBackupRestoreControls filename={String(item.filename)} />
                   </div>
                 </div>
               ))
