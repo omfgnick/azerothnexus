@@ -14,11 +14,11 @@ class SyncScheduler:
         return {
             "jobs": [
                 {"job": "sync-realms", "provider": "blizzard", "cadence": "daily"},
-                {"job": "sync-guilds", "provider": "raiderio", "cadence": "hourly"},
-                {"job": "sync-characters", "provider": "blizzard", "cadence": "hourly"},
-                {"job": "sync-raid-performance", "provider": "warcraftlogs", "cadence": "30m"},
-                {"job": "recompute-rankings", "provider": "internal", "cadence": "15m"},
-                {"job": "generate-snapshots", "provider": "internal", "cadence": "hourly"},
+                {"job": "sync-guilds", "provider": "raiderio", "cadence": "10m"},
+                {"job": "sync-characters", "provider": "blizzard", "cadence": "10m"},
+                {"job": "sync-raid-performance", "provider": "warcraftlogs", "cadence": "10m"},
+                {"job": "recompute-rankings", "provider": "internal", "cadence": "10m"},
+                {"job": "generate-snapshots", "provider": "internal", "cadence": "10m"},
             ],
             "circuit_breakers": {
                 "blizzard": {"threshold": 5, "cooldown_seconds": 120},

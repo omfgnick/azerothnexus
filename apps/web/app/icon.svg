@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" fill="none">
+  <defs>
+    <linearGradient id="nexus-gold" x1="18" y1="14" x2="106" y2="112" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7E8B4"/>
+      <stop offset="1" stop-color="#A9E5FF"/>
+    </linearGradient>
+    <radialGradient id="nexus-core" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(64 64) rotate(90) scale(58)">
+      <stop stop-color="#14284E"/>
+      <stop offset="1" stop-color="#050913"/>
+    </radialGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#nexus-core)"/>
+  <circle cx="64" cy="64" r="42" stroke="url(#nexus-gold)" stroke-opacity=".34" stroke-width="4"/>
+  <circle cx="64" cy="64" r="26" stroke="url(#nexus-gold)" stroke-width="4"/>
+  <path d="M64 18v18M64 92v18M18 64h18M92 64h18" stroke="url(#nexus-gold)" stroke-linecap="round" stroke-width="4"/>
+  <path d="m34 34 13 13M81 81l13 13M94 34 81 47M47 81 34 94" stroke="url(#nexus-gold)" stroke-linecap="round" stroke-width="4"/>
+  <path d="m64 44 12 20-12 20-12-20 12-20Z" stroke="url(#nexus-gold)" stroke-linejoin="round" stroke-width="4"/>
+  <circle cx="64" cy="64" r="6" fill="url(#nexus-gold)"/>
+</svg>

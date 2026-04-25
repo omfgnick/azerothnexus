@@ -1,3 +1,5 @@
+import asyncio
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -5,15 +7,41 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import api_router
 from app.core.config import settings
-from app.db.session import Base, engine
+from app.db.session import Base, SessionLocal, engine
 from app.observability.middleware import RequestLogMiddleware
 from app.security.headers import SecurityHeadersMiddleware
+from app.services.entity_refresh_service import EntityRefreshService
+
+logger = logging.getLogger(__name__)
+
+
+async def auto_refresh_loop() -> None:
+    interval = max(settings.auto_refresh_interval_seconds, 60)
+    await asyncio.sleep(10)
+    while True:
+        db = SessionLocal()
+        try:
+            await EntityRefreshService(db).refresh_all_tracked()
+        except Exception:
+            logger.exception("Automatic tracked-entity refresh failed.")
+            db.rollback()
+        finally:
+            db.close()
+        await asyncio.sleep(interval)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
-    yield
+    task = asyncio.create_task(auto_refresh_loop())
+    try:
+        yield
+    finally:
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
 
 
 app = FastAPI(

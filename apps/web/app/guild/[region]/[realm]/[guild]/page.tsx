@@ -1,8 +1,12 @@
+import { EntityRefreshButton } from "@/components/entity-refresh-button";
+import { GuildSigilIcon, IconFrame, RaidSigilIcon } from "@/components/nexus-icons";
+import { ScenePanel } from "@/components/scene-panel";
 import { ScoreHistoryChart } from "@/components/score-history-chart";
 import { getGuild, getGuildHistory } from "@/lib/api";
 
 export default async function GuildPage({ params }: { params: Promise<{ region: string; realm: string; guild: string }> }) {
   const resolved = await params;
+  const realmLabel = resolved.realm.replace(/-/g, " ");
   const [guild, history] = await Promise.all([
     getGuild(resolved.region, resolved.realm, resolved.guild),
     getGuildHistory(resolved.region, resolved.realm, resolved.guild)
@@ -10,40 +14,67 @@ export default async function GuildPage({ params }: { params: Promise<{ region: 
 
   return (
     <div className="page-shell space-y-8">
-      <section className="panel panel-section-lg">
-        <p className="eyebrow">Guild hall</p>
-        <h1 className="mt-6 display-title text-[clamp(2.8rem,4.6vw,4.8rem)]">{guild.name}</h1>
-        <p className="mt-6 max-w-3xl lead-copy">{guild.rank_profile.explanation}</p>
+      <section className="grid gap-6 xl:grid-cols-[0.98fr_1.02fr]">
+        <div className="panel panel-section-lg">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="eyebrow">Guild profile</p>
+              <h1 className="mt-6 display-title text-[clamp(2.8rem,4.6vw,4.8rem)]">{guild.name}</h1>
+              <p className="mt-6 max-w-3xl lead-copy">{guild.rank_profile.explanation}</p>
+              <div className="mt-8 flex flex-wrap items-center gap-3">
+                <div className="rune-pill">Auto refresh every 10 minutes</div>
+                <EntityRefreshButton entityType="guild" region={resolved.region} realm={resolved.realm} name={guild.name} pathName={resolved.guild} />
+              </div>
+            </div>
+            <IconFrame className="hidden h-16 w-16 rounded-[1.45rem] md:inline-flex" tone="gold">
+              <GuildSigilIcon className="h-8 w-8" />
+            </IconFrame>
+          </div>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-4">
-          <div className="data-slab">
-            <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Composite</div>
-            <div className="mt-3 score-number tone-gold">{guild.rank_profile.score.toFixed(1)}</div>
-          </div>
-          <div className="data-slab">
-            <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Tier</div>
-            <div className="mt-3 text-2xl text-white" style={{ fontFamily: "var(--font-display)" }}>
-              {guild.rank_profile.tier}
+          <div className="mt-8 grid gap-4 md:grid-cols-4">
+            <div className="data-slab">
+              <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Composite</div>
+              <div className="mt-3 score-number tone-gold">{guild.rank_profile.score.toFixed(1)}</div>
             </div>
-          </div>
-          <div className="data-slab">
-            <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Trend</div>
-            <div className="mt-3 text-2xl text-white" style={{ fontFamily: "var(--font-display)" }}>
-              {guild.rank_profile.trend}
+            <div className="data-slab">
+              <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Tier</div>
+              <div className="mt-3 text-2xl text-white" style={{ fontFamily: "var(--font-display)" }}>
+                {guild.rank_profile.tier}
+              </div>
             </div>
-          </div>
-          <div className="data-slab">
-            <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">World rank</div>
-            <div className="mt-3 score-number">#{guild.ranking_position ?? "-"}</div>
+            <div className="data-slab">
+              <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Trend</div>
+              <div className="mt-3 text-2xl text-white" style={{ fontFamily: "var(--font-display)" }}>
+                {guild.rank_profile.trend}
+              </div>
+            </div>
+            <div className="data-slab">
+              <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">World rank</div>
+              <div className="mt-3 score-number">#{guild.ranking_position ?? "-"}</div>
+            </div>
           </div>
         </div>
+
+        <ScenePanel
+          eyebrow="Raid war hall"
+          title={`${guild.name} inside a guild chamber worthy of Azeroth raid night.`}
+          description="This page now has a stronger Warcraft identity, with a proper guild hall scene instead of opening as only text and data slabs."
+          imageSrc="/images/guild-warhall-scene.png"
+          imageAlt="Grand Azeroth guild hall with banners, heroes, weapons, and a raid planning table."
+          icon={
+            <IconFrame className="h-16 w-16 rounded-[1.45rem]" tone="gold">
+              <RaidSigilIcon className="h-8 w-8" />
+            </IconFrame>
+          }
+          badge={`${resolved.region.toUpperCase()} / ${realmLabel}`}
+        />
       </section>
 
       <ScoreHistoryChart title="Guild score history" points={history.points} />
 
       <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="panel panel-section">
-          <p className="eyebrow">Power lattice</p>
+          <p className="eyebrow">Guild breakdown</p>
           <h2 className="mt-4 text-3xl text-white" style={{ fontFamily: "var(--font-display)" }}>
             Score breakdown
           </h2>
@@ -86,7 +117,7 @@ export default async function GuildPage({ params }: { params: Promise<{ region: 
       </section>
 
       <section className="panel panel-section">
-        <p className="eyebrow">Roster manifest</p>
+        <p className="eyebrow">Guild roster</p>
         <h2 className="mt-4 text-3xl text-white" style={{ fontFamily: "var(--font-display)" }}>
           Guild roster
         </h2>

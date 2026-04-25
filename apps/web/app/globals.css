@@ -243,6 +243,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 0.55rem;
     min-height: 44px;
     padding: 0.8rem 1.15rem;
     border: 1px solid rgba(214, 190, 144, 0.12);
@@ -424,6 +425,10 @@
 
   .tone-arcane {
     color: rgba(182, 232, 255, 0.95);
+  }
+
+  .rune-pill::before {
+    content: "\2726";
   }
 }
 

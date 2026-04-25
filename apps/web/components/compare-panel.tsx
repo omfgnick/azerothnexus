@@ -46,7 +46,7 @@ export function ComparePanel({ title, comparison }: { title: string; comparison:
       <div className="border-b border-white/10 pb-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="eyebrow">Judgement chamber</p>
+            <p className="eyebrow">Comparison readout</p>
             <h2 className="mt-4 section-title">{title}</h2>
             <p className="mt-3 max-w-3xl text-sm text-white/60">{comparison.verdict}</p>
           </div>

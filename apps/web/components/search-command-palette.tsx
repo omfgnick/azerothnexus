@@ -105,9 +105,9 @@ export function SearchCommandPalette({
         <div className="relative space-y-5">
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="eyebrow">{compact ? "Scrying interface" : "Observatory search"}</p>
+              <p className="eyebrow">{compact ? "Azeroth Nexus search" : "Search and discovery"}</p>
               <h2 className="mt-4 text-2xl text-white md:text-3xl" style={{ fontFamily: "var(--font-display)" }}>
-                Search the archives by guild, champion, realm, or omen.
+                Search Azeroth Nexus by guild, character, realm, or region.
               </h2>
             </div>
             <div className="rune-pill">{loading ? "Scanning the runes" : "Public lookup active"}</div>
@@ -170,10 +170,10 @@ export function SearchCommandPalette({
             </div>
             <div className="flex items-end gap-3">
               <button type="submit" className="arcane-button">
-                Scry the archives
+                Search now
               </button>
               <Link href={href} className="arcane-button-secondary">
-                Open ledger
+                Open results
               </Link>
             </div>
           </div>
@@ -184,8 +184,8 @@ export function SearchCommandPalette({
         <div className="absolute left-0 right-0 top-[calc(100%+14px)] z-30 panel overflow-hidden bg-[#08111d]/95 shadow-[0_32px_80px_rgba(0,0,0,0.56)]">
           <div className="flex flex-col gap-3 border-b border-white/10 px-5 py-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="eyebrow text-[0.58rem]">Rune echoes</p>
-              <p className="mt-3 text-sm text-white/60">The observatory is surfacing the closest public matches for this query.</p>
+              <p className="eyebrow text-[0.58rem]">Live suggestions</p>
+              <p className="mt-3 text-sm text-white/60">Azeroth Nexus is surfacing the closest public matches for this query.</p>
             </div>
             <div className="rune-pill">{loading ? "Scanning" : `${results.length} echoes found`}</div>
           </div>

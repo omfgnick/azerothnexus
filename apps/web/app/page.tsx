@@ -1,5 +1,14 @@
 import { Hero } from "@/components/hero";
+import {
+  ArchiveSigilIcon,
+  IconFrame,
+  NexusCrestIcon,
+  RaidSigilIcon,
+  SearchSigilIcon,
+  WarboardSigilIcon
+} from "@/components/nexus-icons";
 import { RankingTable } from "@/components/ranking-table";
+import { ScenePanel } from "@/components/scene-panel";
 import { StatCard } from "@/components/stat-card";
 import { getActivityFeed, getGuildLadder, getMythicDashboard, getRaidDashboard } from "@/lib/api";
 
@@ -18,14 +27,101 @@ export default async function HomePage() {
       <Hero />
 
       <section className="grid gap-5 md:grid-cols-4">
-        <StatCard label="Tracked entities" value="18.4K" detail="Guilds, champions, realms, and regions standing ready for public scouting." />
-        <StatCard label="Current raid" value={raid.raid?.name ?? "N/A"} detail="The active tier presented as a chamber of bosses, not a plain checklist." />
+        <StatCard
+          label="Tracked entities"
+          value="18.4K"
+          detail="Guilds, champions, realms, and regions standing ready for public scouting."
+          icon={
+            <IconFrame className="h-12 w-12 rounded-[1rem]" tone="gold">
+              <NexusCrestIcon className="h-5 w-5" />
+            </IconFrame>
+          }
+        />
+        <StatCard
+          label="Current raid"
+          value={raid.raid?.name ?? "N/A"}
+          detail="The active tier presented as a chamber of bosses, not a plain checklist."
+          icon={
+            <IconFrame className="h-12 w-12 rounded-[1rem]" tone="violet">
+              <RaidSigilIcon className="h-5 w-5" />
+            </IconFrame>
+          }
+        />
         <StatCard
           label="Top guild note"
           value={topGuild?.grade ?? "N/A"}
           detail={topGuild?.tier ? `${topGuild.tier} / ${topGuild.trend ?? "steady"}` : "Ranking intelligence ready"}
+          icon={
+            <IconFrame className="h-12 w-12 rounded-[1rem]" tone="arcane">
+              <WarboardSigilIcon className="h-5 w-5" />
+            </IconFrame>
+          }
         />
-        <StatCard label="Scrying layer" value="Live" detail="Autocomplete by name, realm, region, or guild with runic search treatment." />
+        <StatCard
+          label="Scrying layer"
+          value="Live"
+          detail="Autocomplete by name, realm, region, or guild with runic search treatment."
+          icon={
+            <IconFrame className="h-12 w-12 rounded-[1rem]" tone="emerald">
+              <SearchSigilIcon className="h-5 w-5" />
+            </IconFrame>
+          }
+        />
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
+        <ScenePanel
+          eyebrow="Azeroth Nexus"
+          title="A front page with signature destinations instead of abstract filler."
+          description="The observatory hero now has a real place, while the wider product gains image-backed chambers that immediately explain what each major surface is for."
+          imageSrc="/images/nexus-observatory-hero.png"
+          imageAlt="Azeroth Nexus observatory perched above a moonlit magical skyline."
+          icon={
+            <IconFrame className="h-16 w-16 rounded-[1.45rem]" tone="gold">
+              <NexusCrestIcon className="h-8 w-8" />
+            </IconFrame>
+          }
+          badge="Signature interface"
+          href="/search"
+          actionLabel="Enter the observatory"
+          priority
+        />
+
+        <div className="grid gap-6">
+          <ScenePanel
+            eyebrow="Astral archives"
+            title="Search through tomes, sigils, and public records."
+            description="The search journey now opens inside a visual archive instead of a plain utility slab."
+            imageSrc="/images/astral-archives-card.png"
+            imageAlt="Rune-lit fantasy archive filled with scrolls, celestial maps, and floating tomes."
+            icon={
+              <IconFrame className="h-14 w-14 rounded-[1.15rem]" tone="arcane">
+                <ArchiveSigilIcon className="h-6 w-6" />
+              </IconFrame>
+            }
+            badge="Public search"
+            href="/search"
+            actionLabel="Open archive search"
+            layout="portrait"
+          />
+
+          <ScenePanel
+            eyebrow="Nexus warboard"
+            title="Survey the strongest guilds through a high command table."
+            description="Rankings now have a scenic anchor that sells leadership, scouting, and season pressure at a glance."
+            imageSrc="/images/nexus-warboard-card.png"
+            imageAlt="High-altitude command chamber with a glowing warboard map suspended over clouds."
+            icon={
+              <IconFrame className="h-14 w-14 rounded-[1.15rem]" tone="gold">
+                <WarboardSigilIcon className="h-6 w-6" />
+              </IconFrame>
+            }
+            badge="World rankings"
+            href="/rankings"
+            actionLabel="Open guild warboard"
+            layout="portrait"
+          />
+        </div>
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[1.18fr_0.82fr]">
@@ -49,7 +145,7 @@ export default async function HomePage() {
                 <div className="mt-3 text-2xl text-white" style={{ fontFamily: "var(--font-display)" }}>
                   {boss.name}
                 </div>
-                <p className="mt-3 text-sm text-white/58">The observatory frames each encounter as a ritual step toward full raid domination.</p>
+                <p className="mt-3 text-sm text-white/60">The observatory frames each encounter as a ritual step toward full raid domination.</p>
               </div>
             ))}
           </div>
@@ -115,7 +211,7 @@ export default async function HomePage() {
                 <div className="mt-3 text-2xl text-gold" style={{ fontFamily: "var(--font-display)" }}>
                   {topGuild.label}
                 </div>
-                <div className="mt-3 text-sm text-white/68">{topGuild.explanation}</div>
+                <div className="mt-3 text-sm text-white/70">{topGuild.explanation}</div>
               </div>
             ) : null}
           </div>

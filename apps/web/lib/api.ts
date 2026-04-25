@@ -165,7 +165,14 @@ export async function getCharacter(region: string, realm: string, characterName:
     guild_name: "Void Vanguard",
     mythic_plus_score: 3421.7,
     item_level: 671.4,
-    raid_parses: { overall_estimate: 87.2, bosses_logged: 0, source: "scaffold-estimate" },
+    raid_parses: {
+      overall_estimate: 87.2,
+      bosses_logged: 0,
+      source: "scaffold-estimate",
+      best_performance_average: 0,
+      median_performance_average: 0,
+      all_stars: null
+    },
     achievements: ["Ahead of the Curve", "Keystone Hero"],
     rank_profile: {
       score: 84.8,
@@ -368,5 +375,125 @@ export async function getSearchAutocomplete(filters: SearchFilters): Promise<Sea
     total_results: 0,
     group_counts: [],
     results: []
+  });
+}
+
+export function resolveInternalApiBaseUrl() {
+  const candidates = [
+    process.env.INTERNAL_API_BASE_URL,
+    process.env.API_BASE_URL_INTERNAL,
+    process.env.NEXT_PUBLIC_API_BASE_URL,
+    "http://localhost:8000"
+  ];
+
+  for (const candidate of candidates) {
+    if (candidate && /^https?:\/\//.test(candidate)) {
+      return candidate.replace(/\/$/, "");
+    }
+  }
+
+  return "http://localhost:8000";
+}
+
+async function safeAdminFetch<T>(path: string, fallback: T): Promise<T> {
+  const adminToken = process.env.ADMIN_API_TOKEN;
+  if (!adminToken) {
+    return fallback;
+  }
+
+  try {
+    const response = await fetch(`${resolveInternalApiBaseUrl()}${path}`, {
+      headers: {
+        "X-Admin-Token": adminToken
+      },
+      cache: "no-store"
+    });
+    if (!response.ok) {
+      throw new Error(`Admin request failed with ${response.status}`);
+    }
+    return await response.json();
+  } catch {
+    return fallback;
+  }
+}
+
+export async function getAdminDashboard() {
+  return safeAdminFetch("/api/admin/dashboard", {
+    tracked_counts: { guilds: 0, characters: 0, realms: 0 },
+    sync_plan: { jobs: [], circuit_breakers: {} },
+    providers: [],
+    integrations: { providers: {}, feature_flags: { request_logging: true } },
+    latest_jobs: [],
+    latest_errors: [],
+    latest_snapshots: [],
+    auto_refresh: {
+      interval_seconds: 600,
+      latest_cycle_at: null,
+      latest_cycle_status: process.env.ADMIN_API_TOKEN ? "unavailable" : "missing-token",
+      last_error_at: null,
+      last_error_payload: null
+    },
+    backups: {
+      directory: "/var/backups/azerothnexus",
+      count: 0,
+      latest: null
+    },
+    audit_summary: {
+      total_recent: 0,
+      request_logs: 0,
+      admin_actions: 0,
+      backup_actions: 0
+    },
+    missing_admin_token: !process.env.ADMIN_API_TOKEN
+  });
+}
+
+export async function getAdminIntegrations() {
+  return safeAdminFetch("/api/admin/settings/integrations", {
+    providers: {
+      blizzard: {
+        enabled: true,
+        configured: false,
+        region: "us",
+        client_id: "",
+        client_secret: "",
+        client_secret_configured: false
+      },
+      raiderio: {
+        enabled: true,
+        configured: true,
+        api_base_url: "https://raider.io/api"
+      },
+      warcraftlogs: {
+        enabled: true,
+        configured: false,
+        client_id: "",
+        client_secret: "",
+        client_secret_configured: false
+      }
+    },
+    feature_flags: {
+      request_logging: true
+    }
+  });
+}
+
+export async function getAdminBackups() {
+  return safeAdminFetch("/api/admin/backups", {
+    directory: "/var/backups/azerothnexus",
+    count: 0,
+    items: []
+  });
+}
+
+export async function getAdminLogs() {
+  return safeAdminFetch("/api/admin/logs?limit=120", {
+    timeline: [],
+    summary: {
+      total_recent: 0,
+      request_logs: 0,
+      admin_actions: 0,
+      backup_actions: 0
+    }
   });
 }

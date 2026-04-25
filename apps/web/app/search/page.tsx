@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { ArchiveSigilIcon, IconFrame, SearchSigilIcon } from "@/components/nexus-icons";
+import { ScenePanel } from "@/components/scene-panel";
 import { SearchCommandPalette } from "@/components/search-command-palette";
 import { getSearchResults } from "@/lib/api";
 
@@ -43,13 +45,38 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
   return (
     <div className="page-shell space-y-8">
-      <section className="panel panel-section-lg">
-        <p className="eyebrow">Archive search</p>
-        <h1 className="mt-6 display-title text-[clamp(2.8rem,4.6vw,4.9rem)]">Search by name, realm, guild, or region through a proper scrying chamber.</h1>
-        <p className="mt-6 max-w-3xl lead-copy">
-          Query public guild and character pages with a presentation that feels ritualistic, premium, and unmistakably Azerothian instead of generic product chrome.
-        </p>
-        <SearchCommandPalette initialQuery={query} initialRegion={region} initialRealm={realm} initialGuild={guild} initialType={type} />
+      <section className="grid gap-6 xl:grid-cols-[1.02fr_0.98fr]">
+        <div className="panel panel-section-lg">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="eyebrow">Archive search</p>
+              <h1 className="mt-6 display-title text-[clamp(2.8rem,4.6vw,4.9rem)]">Search by name, realm, guild, or region through a proper scrying chamber.</h1>
+              <p className="mt-6 max-w-3xl lead-copy">
+                Query public guild and character pages with a presentation that feels ritualistic, premium, and unmistakably Azerothian instead of generic product chrome.
+              </p>
+            </div>
+            <IconFrame className="hidden h-16 w-16 rounded-[1.45rem] md:inline-flex" tone="arcane">
+              <SearchSigilIcon className="h-8 w-8" />
+            </IconFrame>
+          </div>
+          <SearchCommandPalette initialQuery={query} initialRegion={region} initialRealm={realm} initialGuild={guild} initialType={type} />
+        </div>
+
+        <ScenePanel
+          eyebrow="Astral archive"
+          title="A search chamber built around maps, tomes, and rune-lit discovery."
+          description="The art gives the search surface a real sense of place, while the new sigils make it feel like a feature of Azeroth Nexus instead of a floating utility page."
+          imageSrc="/images/astral-archives-card.png"
+          imageAlt="Mystical archive chamber with floating books, celestial maps, and blue arcane light."
+          icon={
+            <IconFrame className="h-16 w-16 rounded-[1.45rem]" tone="arcane">
+              <ArchiveSigilIcon className="h-8 w-8" />
+            </IconFrame>
+          }
+          badge={query ? "Runes aligned" : "Awaiting a query"}
+          href="/rankings"
+          actionLabel="Survey the warboard"
+        />
       </section>
 
       <section className="grid gap-4 lg:grid-cols-[0.82fr_1.18fr]">

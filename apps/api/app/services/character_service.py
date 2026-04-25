@@ -1,7 +1,7 @@
 
 from sqlalchemy.orm import Session, joinedload
 
-from app.models import Boss, Character, Guild, GuildRaidProgress, GuildRosterMember
+from app.models import Boss, Character, CharacterProgress, Guild, GuildRaidProgress, GuildRosterMember, Raid
 from app.schemas.character import CharacterDetail
 from app.services.history_service import HistoryService
 from app.services.rank_intelligence import RankIntelligenceService
@@ -49,7 +49,28 @@ class CharacterService:
             )
             guild_profile = guild_score.profile
 
-        character_score = self.rank_intelligence.build_character_score(character=character, guild_profile=guild_profile)
+        current_raid = self.db.query(Raid).filter(Raid.is_current.is_(True)).first()
+        performance_row = None
+        if current_raid:
+            performance_row = (
+                self.db.query(CharacterProgress)
+                .filter(CharacterProgress.character_id == character.id, CharacterProgress.raid_id == current_raid.id)
+                .first()
+            )
+
+        performance_metrics = performance_row.performance_metrics if performance_row else {}
+        live_parse_estimate = None
+        parse_source = None
+        if performance_metrics:
+            parse_source = performance_metrics.get("source")
+            live_parse_estimate = performance_metrics.get("best_performance_average") or performance_metrics.get("median_performance_average")
+
+        character_score = self.rank_intelligence.build_character_score(
+            character=character,
+            guild_profile=guild_profile,
+            live_parse_estimate=live_parse_estimate,
+            parse_source=parse_source,
+        )
         parse_estimate = character_score.parse_estimate
         history = self.history_service.get_character_history(region=region, realm_slug=realm_slug, character_name=character_name, limit=6)
 
@@ -62,7 +83,14 @@ class CharacterService:
             guild_name=character.guild.name if character.guild else None,
             mythic_plus_score=character.mythic_plus_score,
             item_level=character.item_level,
-            raid_parses={"overall_estimate": parse_estimate, "bosses_logged": 0, "source": "scaffold-estimate"},
+            raid_parses={
+                "overall_estimate": parse_estimate,
+                "bosses_logged": int(performance_metrics.get("bosses_logged") or 0),
+                "source": parse_source or "scaffold-estimate",
+                "best_performance_average": performance_metrics.get("best_performance_average"),
+                "median_performance_average": performance_metrics.get("median_performance_average"),
+                "all_stars": performance_metrics.get("all_stars"),
+            },
             achievements=list(character.achievements.keys()) if character.achievements else [],
             rank_profile=character_score.profile,
             score_breakdown=character_score.score_breakdown,

@@ -186,7 +186,13 @@ class RankIntelligenceService:
             },
         )
 
-    def build_character_score(self, character: Character, guild_profile: RankProfile | None = None) -> CharacterScoreData:
+    def build_character_score(
+        self,
+        character: Character,
+        guild_profile: RankProfile | None = None,
+        live_parse_estimate: float | None = None,
+        parse_source: str | None = None,
+    ) -> CharacterScoreData:
         achievement_names = list((character.achievements or {}).keys())
         achievement_weight = 0
         achievement_weights = {
@@ -201,7 +207,11 @@ class RankIntelligenceService:
         achievement_score = self._clamp(35 + achievement_weight, 35, 98)
         mplus_score = self._clamp(character.mythic_plus_score / 38, 0, 100)
         gear_score = self._clamp(28 + max(character.item_level - 630, 0) * 1.45, 25, 98)
-        parse_estimate = self._clamp((mplus_score * 0.55) + (achievement_score * 0.25) + (gear_score * 0.20), 30, 99)
+        parse_estimate = live_parse_estimate
+        if parse_estimate is None:
+            parse_estimate = self._clamp((mplus_score * 0.55) + (achievement_score * 0.25) + (gear_score * 0.20), 30, 99)
+        else:
+            parse_estimate = self._clamp(parse_estimate, 0, 99)
         guild_influence = guild_profile.score if guild_profile else 55.0
         composite = round(
             (mplus_score * 0.34)
@@ -216,7 +226,12 @@ class RankIntelligenceService:
             self._dimension("dungeons", "Dungeon Form", mplus_score, f"Mythic+ score currently sits at {character.mythic_plus_score:.1f}."),
             self._dimension("gear", "Gear Readiness", gear_score, f"Item level {character.item_level:.1f} keeps this profile raid-ready."),
             self._dimension("accolades", "Accolades", achievement_score, f"Tracked achievement weight reached {achievement_weight} points."),
-            self._dimension("execution", "Execution", parse_estimate, "Estimated from score, gear, and accolades until live logs are connected."),
+            self._dimension(
+                "execution",
+                "Execution",
+                parse_estimate,
+                "Derived from live Warcraft Logs parse data." if parse_source == "warcraftlogs" else "Estimated from score, gear, and accolades until live logs are connected.",
+            ),
         ]
         profile = RankProfile(
             score=composite,

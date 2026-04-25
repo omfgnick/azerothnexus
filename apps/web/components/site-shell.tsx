@@ -1,12 +1,23 @@
 import Link from "next/link";
 import { ReactNode } from "react";
 
+import {
+  CompareSigilIcon,
+  ChampionSigilIcon,
+  GuildSigilIcon,
+  IconFrame,
+  NexusCrestIcon,
+  SearchSigilIcon,
+  WarboardSigilIcon
+} from "@/components/nexus-icons";
+
 const navLinks = [
-  { href: "/rankings", label: "Rankings" },
-  { href: "/search", label: "Archives" },
-  { href: "/compare", label: "Duels" },
-  { href: "/guild/us/stormrage/void-vanguard", label: "Guild Hall" },
-  { href: "/character/us/stormrage/Aethryl", label: "Champion" }
+  { href: "/rankings", label: "Rankings", icon: WarboardSigilIcon },
+  { href: "/search", label: "Search", icon: SearchSigilIcon },
+  { href: "/compare", label: "Compare", icon: CompareSigilIcon },
+  { href: "/guild/us/stormrage/void-vanguard", label: "Guilds", icon: GuildSigilIcon },
+  { href: "/character/us/stormrage/Aethryl", label: "Characters", icon: ChampionSigilIcon },
+  { href: "/admin", label: "Admin", icon: NexusCrestIcon }
 ];
 
 export function SiteShell({ children }: { children: ReactNode }) {
@@ -26,16 +37,11 @@ export function SiteShell({ children }: { children: ReactNode }) {
             <div className="absolute inset-x-16 top-0 h-px bg-gradient-to-r from-transparent via-gold/60 to-transparent" />
             <div className="relative flex flex-col gap-5 px-5 py-5 lg:flex-row lg:items-center lg:justify-between lg:px-8">
               <Link href="/" className="group flex items-center gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-[1.4rem] border border-gold/30 bg-gradient-to-b from-gold/20 to-sky-500/10 shadow-[0_0_30px_rgba(212,168,79,0.14)]">
-                  <span
-                    className="text-2xl font-semibold tracking-[0.18em] text-gold transition group-hover:scale-105"
-                    style={{ fontFamily: "var(--font-display)" }}
-                  >
-                    A
-                  </span>
-                </div>
+                <IconFrame className="h-16 w-16 rounded-[1.45rem]" tone="gold">
+                  <NexusCrestIcon className="h-9 w-9 transition group-hover:scale-105" />
+                </IconFrame>
                 <div>
-                  <div className="eyebrow text-[0.64rem]">Arcane Observatory</div>
+                  <div className="eyebrow text-[0.64rem]">Arcane Observatory Interface</div>
                   <div
                     className="mt-3 text-xl tracking-[0.34em] text-gold sm:text-2xl"
                     style={{ fontFamily: "var(--font-display)" }}
@@ -43,7 +49,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
                     AZEROTH NEXUS
                   </div>
                   <p className="mt-2 max-w-xl text-sm text-white/60">
-                    Scry guild momentum, raid omens, and character power through a war-room worthy observatory.
+                    A war-room for guild momentum, raid omens, roster scouting, and character power with a stronger Azerothian identity.
                   </p>
                 </div>
               </Link>
@@ -53,6 +59,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
                 <nav className="flex flex-wrap gap-2 lg:justify-end">
                   {navLinks.map((link) => (
                     <Link key={link.href} href={link.href} className="nav-link">
+                      <link.icon className="h-4 w-4 opacity-90" />
                       {link.label}
                     </Link>
                   ))}

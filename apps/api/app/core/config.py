@@ -29,6 +29,8 @@ class Settings(BaseSettings):
 
     provider_timeout_seconds: int = 20
     cache_ttl_seconds: int = 300
+    auto_refresh_interval_seconds: int = 600
+    backup_dir: str = "/var/backups/azerothnexus"
 
     @property
     def allowed_origins(self) -> list[str]:

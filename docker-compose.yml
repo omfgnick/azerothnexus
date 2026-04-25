@@ -24,6 +24,7 @@ services:
     volumes:
       - ./apps/api:/app
       - ./scripts:/app/scripts
+      - backup_data:/var/backups/azerothnexus
 
   worker:
     build:
@@ -41,8 +42,11 @@ services:
   web:
     build:
       context: ./apps/web
+    env_file:
+      - .env
     environment:
       NEXT_PUBLIC_API_BASE_URL: http://localhost:${API_PORT:-8000}
+      INTERNAL_API_BASE_URL: http://api:8000
     depends_on:
       - api
     ports:
@@ -53,3 +57,4 @@ services:
 
 volumes:
   postgres_data:
+  backup_data:

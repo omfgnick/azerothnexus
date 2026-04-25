@@ -35,7 +35,7 @@ export function RankingTable({ title, entries }: { title: string; entries: Entry
         <div className="absolute inset-x-10 bottom-0 h-px bg-gradient-to-r from-transparent via-gold/55 to-transparent" />
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="eyebrow">Astral Ledger</p>
+            <p className="eyebrow">Guild rankings</p>
             <h2 className="mt-4 section-title">{title}</h2>
             <p className="mt-3 max-w-2xl text-sm text-white/60">
               Composite scoring, rune-marked tiers, trend reading, confidence, and dimension-by-dimension notes for each contender.
@@ -83,7 +83,7 @@ export function RankingTable({ title, entries }: { title: string; entries: Entry
                   </div>
 
                   {entry.subtitle ? <div className="text-sm uppercase tracking-[0.2em] text-white/40">{entry.subtitle}</div> : null}
-                  {entry.explanation ? <p className="max-w-3xl text-sm text-white/68">{entry.explanation}</p> : null}
+                  {entry.explanation ? <p className="max-w-3xl text-sm text-white/70">{entry.explanation}</p> : null}
 
                   {topDimensions.length ? (
                     <div className="flex flex-wrap gap-2">
@@ -122,7 +122,7 @@ export function RankingTable({ title, entries }: { title: string; entries: Entry
                       <div className="mt-3 text-2xl text-white" style={{ fontFamily: "var(--font-display)" }}>
                         {dimension.score.toFixed(1)}
                       </div>
-                      <p className="mt-3 text-sm text-white/58">{dimension.note}</p>
+                      <p className="mt-3 text-sm text-white/60">{dimension.note}</p>
                     </div>
                   ))}
                 </div>
