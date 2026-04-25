@@ -1,8 +1,12 @@
-
 from sqlalchemy.orm import Session, joinedload
 
 from app.models import Boss, Character, CharacterProgress, Guild, GuildRaidProgress, GuildRosterMember, Raid
-from app.schemas.character import CharacterDetail
+from app.schemas.character import (
+    CharacterDetail,
+    CharacterEquipmentItem,
+    CharacterProfileSummary,
+    CharacterTalentLoadout,
+)
 from app.services.history_service import HistoryService
 from app.services.rank_intelligence import RankIntelligenceService
 
@@ -74,6 +78,14 @@ class CharacterService:
         parse_estimate = character_score.parse_estimate
         history = self.history_service.get_character_history(region=region, realm_slug=realm_slug, character_name=character_name, limit=6)
 
+        profile_bundle = self._extract_armory_profile(character.achievements)
+        equipment = [
+            CharacterEquipmentItem.model_validate(item)
+            for item in profile_bundle.get("equipment", [])
+            if isinstance(item, dict)
+        ]
+        talent_loadout = profile_bundle.get("talent_loadout")
+
         return CharacterDetail(
             name=character.name,
             region=character.region.code,
@@ -91,8 +103,33 @@ class CharacterService:
                 "median_performance_average": performance_metrics.get("median_performance_average"),
                 "all_stars": performance_metrics.get("all_stars"),
             },
-            achievements=list(character.achievements.keys()) if character.achievements else [],
+            achievements=self._extract_achievement_names(character.achievements),
             rank_profile=character_score.profile,
             score_breakdown=character_score.score_breakdown,
             recent_history=history.points if history else [],
+            profile_summary=CharacterProfileSummary.model_validate(profile_bundle.get("summary") or {}),
+            equipment=equipment,
+            talent_loadout=CharacterTalentLoadout.model_validate(talent_loadout) if isinstance(talent_loadout, dict) else None,
         )
+
+    def _extract_achievement_names(self, payload: dict | list | None) -> list[str]:
+        if isinstance(payload, dict):
+            stored = payload.get("achievement_names")
+            if isinstance(stored, list):
+                return [str(item) for item in stored if item]
+            return [
+                str(key)
+                for key in payload.keys()
+                if key not in {"achievement_names", "armory_profile"} and not str(key).startswith("_")
+            ]
+        if isinstance(payload, list):
+            return [str(item) for item in payload if item]
+        return []
+
+    def _extract_armory_profile(self, payload: dict | list | None) -> dict:
+        if not isinstance(payload, dict):
+            return {}
+        armory_profile = payload.get("armory_profile")
+        if isinstance(armory_profile, dict):
+            return armory_profile
+        return {}

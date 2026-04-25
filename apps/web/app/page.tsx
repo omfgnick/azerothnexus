@@ -99,7 +99,7 @@ export default async function HomePage() {
             <div className="rune-pill">Live lattice</div>
           </div>
 
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
             <StatCard
               label="Tracked entities"
               value="18.4K"
@@ -151,9 +151,9 @@ export default async function HomePage() {
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Warboard signal</div>
-                  <div className="mt-3 text-[2rem] leading-none text-gold" style={{ fontFamily: "var(--font-display)" }}>
-                    {topGuild.label}
-                  </div>
+              <div className="mt-3 text-[1.65rem] leading-none text-gold sm:text-[2rem]" style={{ fontFamily: "var(--font-display)" }}>
+                {topGuild.label}
+              </div>
                 </div>
                 <div className="rune-chip">{topGuild.tier ?? "Season watch"}</div>
               </div>
@@ -166,10 +166,10 @@ export default async function HomePage() {
             </div>
           ) : null}
 
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
             <div className="data-slab">
               <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Raid season</div>
-              <div className="mt-3 text-[1.85rem] leading-tight text-white" style={{ fontFamily: "var(--font-display)" }}>
+              <div className="mt-3 text-[1.45rem] leading-tight text-white sm:text-[1.85rem]" style={{ fontFamily: "var(--font-display)" }}>
                 {raid.raid?.name ?? "Current tier"}
               </div>
               <p className="mt-4 text-sm leading-7 text-white/62">
@@ -218,7 +218,7 @@ export default async function HomePage() {
                   </div>
                   <div className="min-w-0">
                     <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Encounter {boss.order}</div>
-                    <div className="mt-3 text-[1.75rem] leading-tight text-white" style={{ fontFamily: "var(--font-display)" }}>
+                    <div className="mt-3 text-[1.4rem] leading-tight text-white sm:text-[1.75rem]" style={{ fontFamily: "var(--font-display)" }}>
                       {boss.name}
                     </div>
                     <p className="mt-3 text-sm leading-7 text-white/62">
@@ -248,7 +248,7 @@ export default async function HomePage() {
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">{item.type}</div>
-                    <div className="mt-3 text-[1.4rem] leading-tight text-white" style={{ fontFamily: "var(--font-display)" }}>
+                    <div className="mt-3 text-[1.15rem] leading-tight text-white sm:text-[1.4rem]" style={{ fontFamily: "var(--font-display)" }}>
                       {item.title}
                     </div>
                   </div>
@@ -299,7 +299,7 @@ export default async function HomePage() {
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <p className="eyebrow">Expedition routes</p>
-                <h3 className="mt-4 text-[2rem] leading-tight text-white" style={{ fontFamily: "var(--font-display)" }}>
+                <h3 className="mt-4 text-[1.55rem] leading-tight text-white sm:text-[2rem]" style={{ fontFamily: "var(--font-display)" }}>
                   Move between scouting, compare, and control without breaking the mood of the Nexus.
                 </h3>
               </div>

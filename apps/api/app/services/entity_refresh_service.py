@@ -254,6 +254,12 @@ class EntityRefreshService:
             character.item_level = float(item_level)
         if mythic_score is not None:
             character.mythic_plus_score = float(mythic_score)
+        character.achievements = self._merge_character_profile_payload(
+            existing_payload=character.achievements,
+            summary=summary if isinstance(summary, dict) else None,
+            equipment_payload=blizzard_payload.get("equipment") if isinstance(blizzard_payload, dict) else None,
+            specializations_payload=blizzard_payload.get("specializations") if isinstance(blizzard_payload, dict) else None,
+        )
 
         self.db.add(character)
         self.db.flush()
@@ -747,6 +753,278 @@ class EntityRefreshService:
             "all_stars": raw.get("allStars"),
             "rankings": rankings[:12],
         }
+
+    def _merge_character_profile_payload(
+        self,
+        existing_payload: dict[str, Any] | list[str] | None,
+        summary: dict[str, Any] | None,
+        equipment_payload: dict[str, Any] | None,
+        specializations_payload: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        achievement_names = self._extract_achievement_names(existing_payload)
+        existing_armory = existing_payload.get("armory_profile") if isinstance(existing_payload, dict) else {}
+        if not isinstance(existing_armory, dict):
+            existing_armory = {}
+
+        merged = {
+            "achievement_names": achievement_names,
+            "armory_profile": {
+                "summary": self._build_character_profile_summary(summary, existing_armory.get("summary")),
+                "equipment": self._extract_equipment_items(equipment_payload) or existing_armory.get("equipment") or [],
+                "talent_loadout": self._extract_talent_loadout(specializations_payload) or existing_armory.get("talent_loadout"),
+            },
+        }
+        return merged
+
+    def _extract_achievement_names(self, payload: dict[str, Any] | list[str] | None) -> list[str]:
+        if isinstance(payload, dict):
+            stored = payload.get("achievement_names")
+            if isinstance(stored, list):
+                return [str(item) for item in stored if item]
+            return [
+                str(key)
+                for key in payload.keys()
+                if key not in {"achievement_names", "armory_profile"} and not str(key).startswith("_")
+            ]
+        if isinstance(payload, list):
+            return [str(item) for item in payload if item]
+        return []
+
+    def _build_character_profile_summary(
+        self,
+        summary: dict[str, Any] | None,
+        fallback: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        fallback = fallback if isinstance(fallback, dict) else {}
+        if not isinstance(summary, dict):
+            return fallback
+        return {
+            "race_name": self._pick_first(self._deep_get(summary, "race", "name"), fallback.get("race_name")),
+            "faction_name": self._pick_first(self._deep_get(summary, "faction", "name"), fallback.get("faction_name")),
+            "gender_name": self._pick_first(self._deep_get(summary, "gender", "name"), fallback.get("gender_name")),
+            "level": self._pick_first(summary.get("level"), fallback.get("level")),
+            "achievement_points": self._pick_first(summary.get("achievement_points"), fallback.get("achievement_points")),
+            "active_title": self._pick_first(self._deep_get(summary, "active_title", "name"), fallback.get("active_title")),
+            "active_spec_name": self._pick_first(self._deep_get(summary, "active_spec", "name"), fallback.get("active_spec_name")),
+        }
+
+    def _extract_equipment_items(self, equipment_payload: dict[str, Any] | None) -> list[dict[str, Any]]:
+        if not isinstance(equipment_payload, dict):
+            return []
+        items = equipment_payload.get("equipped_items")
+        if not isinstance(items, list):
+            return []
+
+        parsed: list[dict[str, Any]] = []
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+
+            slot_name = self._pick_first(
+                self._deep_get(item, "slot", "name"),
+                self._deep_get(item, "inventory_type", "name"),
+                self._deep_get(item, "slot", "type"),
+                self._deep_get(item, "inventory_type", "type"),
+            )
+            item_name = self._pick_first(
+                self._deep_get(item, "item", "name"),
+                item.get("name"),
+            )
+            if not slot_name or not item_name:
+                continue
+
+            enchantments = []
+            for enchantment in item.get("enchantments") or []:
+                if not isinstance(enchantment, dict):
+                    continue
+                label = self._pick_first(
+                    enchantment.get("display_string"),
+                    self._deep_get(enchantment, "enchantment", "name"),
+                )
+                if label:
+                    enchantments.append(str(label))
+
+            sockets = []
+            for socket in item.get("sockets") or []:
+                if not isinstance(socket, dict):
+                    continue
+                label = self._pick_first(
+                    self._deep_get(socket, "item", "name"),
+                    self._deep_get(socket, "socket_type", "name"),
+                    self._deep_get(socket, "socket_type", "type"),
+                )
+                if label:
+                    sockets.append(str(label))
+
+            bonuses = []
+            for bonus in item.get("spells") or []:
+                if not isinstance(bonus, dict):
+                    continue
+                label = self._pick_first(
+                    bonus.get("description"),
+                    self._deep_get(bonus, "spell", "name"),
+                )
+                if label:
+                    bonuses.append(str(label))
+
+            set_name = self._pick_first(
+                self._deep_get(item, "set", "item_set", "name"),
+                self._deep_get(item, "item_set", "name"),
+            )
+
+            parsed.append(
+                {
+                    "slot": str(slot_name),
+                    "slot_key": self._slugify(str(self._pick_first(self._deep_get(item, "slot", "type"), slot_name))),
+                    "name": str(item_name),
+                    "item_level": self._pick_first(self._deep_get(item, "level", "value"), item.get("item_level")),
+                    "quality": self._pick_first(self._deep_get(item, "quality", "name"), self._deep_get(item, "quality", "type")),
+                    "inventory_type": self._pick_first(self._deep_get(item, "inventory_type", "name"), self._deep_get(item, "inventory_type", "type")),
+                    "enchantments": enchantments[:3],
+                    "sockets": sockets[:3],
+                    "bonuses": bonuses[:3],
+                    "set_name": set_name,
+                    "is_tier_item": bool(set_name),
+                }
+            )
+
+        slot_order = {
+            "head": 0,
+            "neck": 1,
+            "shoulder": 2,
+            "back": 3,
+            "chest": 4,
+            "wrist": 5,
+            "hands": 6,
+            "waist": 7,
+            "legs": 8,
+            "feet": 9,
+            "finger-1": 10,
+            "finger-2": 11,
+            "trinket-1": 12,
+            "trinket-2": 13,
+            "main-hand": 14,
+            "off-hand": 15,
+        }
+        return sorted(parsed, key=lambda item: slot_order.get(item["slot_key"], 99))
+
+    def _extract_talent_loadout(self, specializations_payload: dict[str, Any] | None) -> dict[str, Any] | None:
+        if not isinstance(specializations_payload, dict):
+            return None
+        specializations = specializations_payload.get("specializations")
+        if not isinstance(specializations, list):
+            return None
+
+        loadout_names: list[str] = []
+        selected_specialization = None
+        selected_loadout = None
+
+        for specialization in specializations:
+            if not isinstance(specialization, dict):
+                continue
+            loadouts = specialization.get("loadouts") if isinstance(specialization.get("loadouts"), list) else []
+            loadout_names.extend(
+                str(loadout.get("name"))
+                for loadout in loadouts
+                if isinstance(loadout, dict) and loadout.get("name")
+            )
+            if selected_specialization is None:
+                selected_specialization = specialization
+            if selected_loadout is None and loadouts:
+                selected_loadout = next(
+                    (loadout for loadout in loadouts if isinstance(loadout, dict) and loadout.get("is_active")),
+                    loadouts[0],
+                )
+                if selected_loadout is not None:
+                    selected_specialization = specialization
+
+        if not isinstance(selected_specialization, dict):
+            return None
+
+        if not isinstance(selected_loadout, dict):
+            selected_loadout = None
+
+        hero_tree_name = self._pick_first(
+            self._deep_get(selected_loadout, "hero_talent_tree", "name") if selected_loadout else None,
+            self._deep_get(selected_specialization, "hero_talent_trees", 0, "name"),
+        )
+
+        return {
+            "name": self._pick_first(selected_loadout.get("name") if selected_loadout else None, "Active Loadout"),
+            "spec_name": self._pick_first(
+                self._deep_get(selected_specialization, "specialization", "name"),
+                self._deep_get(selected_specialization, "spec", "name"),
+            ),
+            "hero_tree_name": hero_tree_name,
+            "loadout_code": self._pick_first(
+                selected_loadout.get("talent_loadout_code") if selected_loadout else None,
+                selected_loadout.get("loadout_code") if selected_loadout else None,
+            ),
+            "class_talents": self._extract_talent_nodes(selected_loadout, "selected_class_talents", "class"),
+            "spec_talents": self._extract_talent_nodes(selected_loadout, "selected_spec_talents", "spec"),
+            "hero_talents": self._extract_talent_nodes(selected_loadout, "selected_hero_talents", "hero"),
+            "pvp_talents": self._extract_talent_nodes(selected_loadout, "selected_pvp_talents", "pvp"),
+            "available_loadouts": list(dict.fromkeys(loadout_names))[:8],
+        }
+
+    def _extract_talent_nodes(
+        self,
+        loadout_payload: dict[str, Any] | None,
+        key: str,
+        talent_type: str,
+    ) -> list[dict[str, Any]]:
+        if not isinstance(loadout_payload, dict):
+            return []
+        raw_nodes = loadout_payload.get(key)
+        if not isinstance(raw_nodes, list):
+            return []
+
+        parsed: list[dict[str, Any]] = []
+        for raw in raw_nodes:
+            if not isinstance(raw, dict):
+                continue
+            name = self._pick_first(
+                self._deep_get(raw, "tooltip", "talent", "name"),
+                self._deep_get(raw, "spell_tooltip", "spell", "name"),
+                self._deep_get(raw, "talent", "name"),
+                raw.get("name"),
+            )
+            if not name:
+                continue
+
+            choice_of = None
+            choices = raw.get("choices")
+            if isinstance(choices, list) and choices:
+                choice_names = [
+                    self._pick_first(
+                        self._deep_get(choice, "tooltip", "talent", "name"),
+                        self._deep_get(choice, "spell_tooltip", "spell", "name"),
+                        self._deep_get(choice, "talent", "name"),
+                        choice.get("name") if isinstance(choice, dict) else None,
+                    )
+                    for choice in choices
+                    if isinstance(choice, dict)
+                ]
+                choice_names = [str(choice_name) for choice_name in choice_names if choice_name]
+                if choice_names:
+                    choice_of = " / ".join(choice_names[:3])
+
+            parsed.append(
+                {
+                    "name": str(name),
+                    "talent_type": talent_type,
+                    "rank": self._pick_first(raw.get("rank"), self._deep_get(raw, "tooltip", "rank")),
+                    "max_rank": self._pick_first(raw.get("max_rank"), self._deep_get(raw, "tooltip", "max_rank")),
+                    "description": self._pick_first(
+                        self._deep_get(raw, "tooltip", "description"),
+                        raw.get("description"),
+                        self._deep_get(raw, "spell_tooltip", "description"),
+                    ),
+                    "choice_of": choice_of,
+                }
+            )
+
+        return parsed[:24]
 
     def _extract_role(self, payload: dict[str, Any] | None) -> str | None:
         if not isinstance(payload, dict):

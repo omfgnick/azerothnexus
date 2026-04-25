@@ -57,45 +57,45 @@ export function SiteShell({ children, locale, copy }: SiteShellProps) {
         <div className="mx-auto max-w-7xl">
           <div className="panel panel-legendary legend-frame overflow-visible">
             <div className="absolute inset-x-24 top-0 h-px bg-gradient-to-r from-transparent via-gold/70 to-transparent" />
-            <div className="relative px-5 py-5 lg:px-8">
+            <div className="relative px-4 py-4 sm:px-5 sm:py-5 lg:px-8">
               <div className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr] xl:items-end">
                 <Link href="/" className="group relative block">
-                  <div className="flex items-start gap-5">
+                  <div className="flex items-start gap-3 sm:gap-5">
                     <div className="relative shrink-0">
                       <span className="pointer-events-none absolute inset-[-16px] rounded-full border border-gold/10" />
                       <span className="pointer-events-none absolute inset-[-30px] rounded-full border border-sky-300/10" />
-                      <IconFrame className="h-20 w-20 rounded-[1.7rem]" tone="gold">
-                        <NexusCrestIcon className="h-10 w-10 transition duration-300 group-hover:scale-105" />
+                      <IconFrame className="h-14 w-14 rounded-[1.2rem] sm:h-20 sm:w-20 sm:rounded-[1.7rem]" tone="gold">
+                        <NexusCrestIcon className="h-7 w-7 transition duration-300 group-hover:scale-105 sm:h-10 sm:w-10" />
                       </IconFrame>
                     </div>
 
                     <div className="min-w-0">
-                      <div className="eyebrow text-[0.62rem]">{copy.eyebrow}</div>
+                      <div className="eyebrow text-[0.56rem] sm:text-[0.62rem]">{copy.eyebrow}</div>
                       <div
-                        className="mt-4 text-[clamp(2rem,4vw,3.3rem)] leading-none tracking-[0.28em] text-gold"
+                        className="mt-3 text-[clamp(1.45rem,7vw,3.3rem)] leading-none tracking-[0.16em] text-gold sm:mt-4 sm:tracking-[0.28em]"
                         style={{ fontFamily: "var(--font-display)" }}
                       >
                         AZEROTH NEXUS
                       </div>
-                      <p className="mt-4 max-w-2xl text-sm leading-7 text-white/68 md:text-base">{copy.summary}</p>
+                      <p className="mt-3 max-w-2xl text-sm leading-6 text-white/68 md:text-base md:leading-7">{copy.summary}</p>
                     </div>
                   </div>
                 </Link>
 
                 <div className="grid gap-4">
                   <div className="grid gap-4 md:grid-cols-[1.1fr_auto] md:items-center">
-                    <div className="data-slab min-h-[8.25rem]">
+                    <div className="data-slab min-h-[7rem] sm:min-h-[8.25rem]">
                       <div className="text-[0.62rem] uppercase tracking-[0.34em] text-gold/70">Celestial charter</div>
                       <div
-                        className="mt-3 text-[1.55rem] leading-tight text-white md:text-[1.75rem]"
+                        className="mt-3 text-[1.15rem] leading-tight text-white sm:text-[1.4rem] md:text-[1.75rem]"
                         style={{ fontFamily: "var(--font-display)" }}
                       >
                         {copy.charterTitle}
                       </div>
-                      <p className="mt-3 text-sm leading-7 text-white/62">{copy.charterDescription}</p>
+                      <p className="mt-3 hidden text-sm leading-7 text-white/62 sm:block">{copy.charterDescription}</p>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3 md:justify-end">
+                    <div className="flex flex-wrap items-center gap-2 md:justify-end">
                       <div className="rune-pill">{copy.status}</div>
                       <LocaleToggle locale={locale} />
                     </div>
@@ -105,10 +105,10 @@ export function SiteShell({ children, locale, copy }: SiteShellProps) {
 
               <div className="ornate-divider mt-6" />
 
-              <nav className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+              <nav className="-mx-1 mt-6 flex snap-x gap-2 overflow-x-auto px-1 pb-1 xl:mx-0 xl:grid xl:grid-cols-6 xl:overflow-visible xl:px-0 xl:pb-0">
                 {navLinks.map((link) => (
-                  <Link key={link.href} href={link.href} className="nav-link min-h-[58px] justify-start px-4">
-                    <span className="inline-flex items-center gap-3">
+                  <Link key={link.href} href={link.href} className="nav-link min-h-[52px] min-w-[168px] shrink-0 snap-start justify-start px-3 sm:min-w-[188px] sm:px-4 xl:min-h-[58px] xl:min-w-0">
+                    <span className="inline-flex items-center gap-2 sm:gap-3">
                       <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5">
                         <link.icon className="h-4 w-4 opacity-90" />
                       </span>

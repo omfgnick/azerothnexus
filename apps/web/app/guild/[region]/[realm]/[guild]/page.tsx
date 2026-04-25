@@ -1,17 +1,15 @@
-import { EntityRefreshButton } from "@/components/entity-refresh-button";
+import { AdminEntityRefreshSlot } from "@/components/admin-entity-refresh-slot";
 import { GuildSigilIcon, IconFrame, RaidSigilIcon } from "@/components/nexus-icons";
 import { ScenePanel } from "@/components/scene-panel";
 import { ScoreHistoryChart } from "@/components/score-history-chart";
 import { getGuild, getGuildHistory } from "@/lib/api";
-import { hasAdminSession } from "@/lib/admin-auth-server";
 
 export default async function GuildPage({ params }: { params: Promise<{ region: string; realm: string; guild: string }> }) {
   const resolved = await params;
   const realmLabel = resolved.realm.replace(/-/g, " ");
-  const [guild, history, canRefresh] = await Promise.all([
+  const [guild, history] = await Promise.all([
     getGuild(resolved.region, resolved.realm, resolved.guild),
     getGuildHistory(resolved.region, resolved.realm, resolved.guild),
-    hasAdminSession(),
   ]);
 
   return (
@@ -25,9 +23,7 @@ export default async function GuildPage({ params }: { params: Promise<{ region: 
               <p className="mt-6 max-w-3xl lead-copy">{guild.rank_profile.explanation}</p>
               <div className="mt-8 flex flex-wrap items-center gap-3">
                 <div className="rune-pill">Auto refresh every 10 minutes</div>
-                {canRefresh ? (
-                  <EntityRefreshButton entityType="guild" region={resolved.region} realm={resolved.realm} name={guild.name} pathName={resolved.guild} />
-                ) : null}
+                <AdminEntityRefreshSlot entityType="guild" region={resolved.region} realm={resolved.realm} name={guild.name} pathName={resolved.guild} />
               </div>
             </div>
             <IconFrame className="hidden h-16 w-16 rounded-[1.45rem] md:inline-flex" tone="gold">
@@ -35,7 +31,7 @@ export default async function GuildPage({ params }: { params: Promise<{ region: 
             </IconFrame>
           </div>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-4">
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <div className="data-slab">
               <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Composite</div>
               <div className="mt-3 score-number tone-gold">{guild.rank_profile.score.toFixed(1)}</div>
@@ -82,7 +78,7 @@ export default async function GuildPage({ params }: { params: Promise<{ region: 
           <h2 className="mt-4 text-3xl text-white" style={{ fontFamily: "var(--font-display)" }}>
             Score breakdown
           </h2>
-          <div className="mt-6 grid gap-3 md:grid-cols-2">
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
             {Object.entries(guild.score_breakdown).map(([key, value]) => (
               <div key={key} className="data-slab">
                 <div className="text-[0.66rem] uppercase tracking-[0.3em] text-gold/75">{key.replace(/_/g, " ")}</div>
@@ -102,14 +98,14 @@ export default async function GuildPage({ params }: { params: Promise<{ region: 
           <div className="mt-6 space-y-3">
             {guild.boss_progress.map((boss: { boss_name: string; difficulty: string; defeated: boolean; pulls: number }) => (
               <div key={boss.boss_name} className="data-slab">
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <div className="text-2xl text-white" style={{ fontFamily: "var(--font-display)" }}>
+                    <div className="text-[1.4rem] text-white sm:text-2xl" style={{ fontFamily: "var(--font-display)" }}>
                       {boss.boss_name}
                     </div>
                     <div className="mt-2 text-sm uppercase tracking-[0.16em] text-white/55">{boss.difficulty}</div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-left sm:text-right">
                     <div className="text-sm font-semibold uppercase tracking-[0.16em] text-white/80">{boss.defeated ? "Defeated" : "Progressing"}</div>
                     <div className="mt-1 text-xs uppercase tracking-[0.16em] text-white/45">{boss.pulls} pulls</div>
                   </div>

@@ -31,7 +31,7 @@ function trendTone(trend?: string) {
 export function RankingTable({ title, entries }: { title: string; entries: Entry[] }) {
   return (
     <section className="panel panel-legendary overflow-hidden">
-      <div className="relative border-b border-white/10 px-6 py-6 md:px-8">
+      <div className="relative border-b border-white/10 px-5 py-5 sm:px-6 sm:py-6 md:px-8">
         <div className="absolute inset-x-10 bottom-0 h-px bg-gradient-to-r from-transparent via-gold/60 to-transparent" />
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
@@ -51,10 +51,10 @@ export function RankingTable({ title, entries }: { title: string; entries: Entry
           const topDimensions = dimensions.slice(0, 2);
 
           return (
-            <article key={`${entry.rank}-${entry.label}`} className="relative px-6 py-6 md:px-8">
+            <article key={`${entry.rank}-${entry.label}`} className="relative px-5 py-5 sm:px-6 sm:py-6 md:px-8">
               <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/6 to-transparent" />
-              <div className="grid gap-5 xl:grid-cols-[120px_1fr_250px]">
-                <div className="relative flex h-28 w-28 flex-col items-center justify-center rounded-[2rem] border border-gold/25 bg-[radial-gradient(circle,rgba(214,190,144,0.18),rgba(110,203,255,0.08),rgba(3,6,14,0.88))] text-center shadow-[0_18px_44px_rgba(0,0,0,0.32)]">
+              <div className="grid gap-5 sm:grid-cols-[104px_1fr] xl:grid-cols-[120px_1fr_250px]">
+                <div className="relative flex h-24 w-24 flex-col items-center justify-center rounded-[1.6rem] border border-gold/25 bg-[radial-gradient(circle,rgba(214,190,144,0.18),rgba(110,203,255,0.08),rgba(3,6,14,0.88))] text-center shadow-[0_18px_44px_rgba(0,0,0,0.32)] sm:h-28 sm:w-28 sm:rounded-[2rem]">
                   <div className="absolute inset-[8px] rounded-[1.55rem] border border-white/10" />
                   <div className="relative text-[0.6rem] uppercase tracking-[0.34em] text-gold/75">Rank</div>
                   <div className="relative mt-2 text-3xl text-gold" style={{ fontFamily: "var(--font-display)" }}>
@@ -64,7 +64,7 @@ export function RankingTable({ title, entries }: { title: string; entries: Entry
 
                 <div className="space-y-4">
                   <div className="flex flex-wrap items-center gap-2">
-                    <div className="text-[1.9rem] text-white" style={{ fontFamily: "var(--font-display)" }}>
+                    <div className="text-[1.55rem] text-white sm:text-[1.9rem]" style={{ fontFamily: "var(--font-display)" }}>
                       {entry.label}
                     </div>
                     {entry.grade ? (
@@ -102,7 +102,7 @@ export function RankingTable({ title, entries }: { title: string; entries: Entry
                   ) : null}
                 </div>
 
-                <div className="data-slab text-right">
+                <div className="data-slab text-left sm:col-span-2 xl:col-span-1 xl:text-right">
                   <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Composite</div>
                   <div className="mt-3 score-number tone-gold">{entry.score.toFixed(1)}</div>
                   {typeof entry.confidence === "number" ? (

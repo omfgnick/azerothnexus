@@ -1,17 +1,16 @@
-import { EntityRefreshButton } from "@/components/entity-refresh-button";
+import { AdminEntityRefreshSlot } from "@/components/admin-entity-refresh-slot";
+import { CharacterArmoryPanel } from "@/components/character-armory-panel";
 import { ChampionSigilIcon, IconFrame, NexusCrestIcon } from "@/components/nexus-icons";
 import { ScenePanel } from "@/components/scene-panel";
 import { ScoreHistoryChart } from "@/components/score-history-chart";
 import { getCharacter, getCharacterHistory } from "@/lib/api";
-import { hasAdminSession } from "@/lib/admin-auth-server";
 
 export default async function CharacterPage({ params }: { params: Promise<{ region: string; realm: string; name: string }> }) {
   const resolved = await params;
   const realmLabel = resolved.realm.replace(/-/g, " ");
-  const [character, history, canRefresh] = await Promise.all([
+  const [character, history] = await Promise.all([
     getCharacter(resolved.region, resolved.realm, resolved.name),
     getCharacterHistory(resolved.region, resolved.realm, resolved.name),
-    hasAdminSession(),
   ]);
 
   return (
@@ -25,9 +24,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ regi
               <p className="mt-6 max-w-3xl lead-copy">{character.rank_profile.explanation}</p>
               <div className="mt-8 flex flex-wrap items-center gap-3">
                 <div className="rune-pill">Auto refresh every 10 minutes</div>
-                {canRefresh ? (
-                  <EntityRefreshButton entityType="character" region={resolved.region} realm={resolved.realm} name={character.name} pathName={resolved.name} />
-                ) : null}
+                <AdminEntityRefreshSlot entityType="character" region={resolved.region} realm={resolved.realm} name={character.name} pathName={resolved.name} />
               </div>
             </div>
             <IconFrame className="hidden h-16 w-16 rounded-[1.45rem] md:inline-flex" tone="arcane">
@@ -35,7 +32,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ regi
             </IconFrame>
           </div>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-4">
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <div className="data-slab">
               <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Composite</div>
               <div className="mt-3 score-number tone-gold">{character.rank_profile.score.toFixed(1)}</div>
@@ -72,6 +69,13 @@ export default async function CharacterPage({ params }: { params: Promise<{ regi
         />
       </section>
 
+      <CharacterArmoryPanel
+        name={character.name}
+        profileSummary={character.profile_summary}
+        equipment={character.equipment}
+        talentLoadout={character.talent_loadout}
+      />
+
       <ScoreHistoryChart title="Character score history" points={history.points} />
 
       <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
@@ -80,7 +84,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ regi
           <h2 className="mt-4 text-3xl text-white" style={{ fontFamily: "var(--font-display)" }}>
             Score breakdown
           </h2>
-          <div className="mt-6 grid gap-3 md:grid-cols-2">
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
             {Object.entries(character.score_breakdown).map(([key, value]) => (
               <div key={key} className="data-slab">
                 <div className="text-[0.66rem] uppercase tracking-[0.3em] text-gold/75">{key.replace(/_/g, " ")}</div>
@@ -136,7 +140,7 @@ export default async function CharacterPage({ params }: { params: Promise<{ regi
           </div>
         </div>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-4">
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <div className="data-slab">
             <div className="text-[0.66rem] uppercase tracking-[0.34em] text-gold/75">Best average</div>
             <div className="mt-3 score-number tone-gold">{Number(character.raid_parses.best_performance_average ?? 0).toFixed(1)}</div>

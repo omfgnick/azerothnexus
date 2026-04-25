@@ -31,7 +31,7 @@ export function ScenePanel({
   priority = false,
   className = "",
 }: ScenePanelProps) {
-  const minHeight = layout === "portrait" ? "min-h-[27rem] md:min-h-[31rem]" : "min-h-[24rem] md:min-h-[28rem]";
+  const minHeight = layout === "portrait" ? "min-h-[22rem] sm:min-h-[27rem] md:min-h-[31rem]" : "min-h-[20rem] sm:min-h-[24rem] md:min-h-[28rem]";
 
   const panel = (
     <article className={`panel panel-legendary group relative h-full overflow-hidden ${className}`}>
@@ -49,20 +49,20 @@ export function ScenePanel({
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_18%,rgba(214,190,144,0.24),transparent_0_24%),radial-gradient(circle_at_78%_18%,rgba(110,203,255,0.24),transparent_0_24%),radial-gradient(circle_at_52%_100%,rgba(122,104,255,0.18),transparent_0_28%)]" />
         <div className="pointer-events-none absolute bottom-6 left-6 hidden h-24 w-24 rounded-full border border-gold/15 shadow-[0_0_0_16px_rgba(110,203,255,0.04)] md:block" />
 
-        <div className="relative z-10 flex h-full flex-col justify-between gap-8 p-6 md:p-8">
+        <div className="relative z-10 flex h-full flex-col justify-between gap-6 p-5 sm:gap-8 sm:p-6 md:p-8">
           <div className="flex items-start justify-between gap-4">
             <div className="max-w-xl">
               <p className="eyebrow">{eyebrow}</p>
-              <h3 className="mt-5 section-title max-w-xl">{title}</h3>
+              <h3 className="mt-4 section-title max-w-xl sm:mt-5">{title}</h3>
             </div>
-            {icon}
+            <div className="hidden sm:block">{icon}</div>
           </div>
 
           <div className="max-w-2xl">
             {badge ? <div className="rune-pill">{badge}</div> : null}
-            <p className="mt-5 text-sm leading-7 text-white/75 md:text-base">{description}</p>
+            <p className="mt-4 text-sm leading-6 text-white/75 sm:mt-5 sm:leading-7 md:text-base">{description}</p>
             {actionLabel ? (
-              <div className="mt-6 inline-flex items-center gap-3 text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-gold/85">
+              <div className="mt-5 inline-flex items-center gap-3 text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-gold/85 sm:mt-6 sm:text-[0.72rem] sm:tracking-[0.28em]">
                 {actionLabel}
                 <span aria-hidden="true">+</span>
               </div>

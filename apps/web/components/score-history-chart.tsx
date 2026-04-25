@@ -54,8 +54,8 @@ export function ScoreHistoryChart({ title, points }: { title: string; points: Po
         {points.length ? <div className="rune-pill">Latest reading {points[points.length - 1].score.toFixed(1)}</div> : null}
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-[1.8rem] border border-white/10 bg-black/25 p-4">
-        <svg viewBox={`0 0 ${width} ${height}`} className="h-56 w-full" preserveAspectRatio="none">
+      <div className="mt-6 overflow-hidden rounded-[1.5rem] border border-white/10 bg-black/25 p-3 sm:rounded-[1.8rem] sm:p-4">
+        <svg viewBox={`0 0 ${width} ${height}`} className="h-44 w-full sm:h-56" preserveAspectRatio="none">
           <defs>
             <linearGradient id={gradientId} x1="0" x2="1" y1="0" y2="0">
               <stop offset="0%" stopColor="rgba(214,190,144,0.98)" />
@@ -105,7 +105,7 @@ export function ScoreHistoryChart({ title, points }: { title: string; points: Po
           ))}
         </svg>
 
-        <div className="mt-4 grid gap-3 md:grid-cols-4">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {points.map((point, index) => (
             <div key={`${point.captured_at}-${index}-meta`} className="data-slab">
               <div className="text-[0.66rem] uppercase tracking-[0.32em] text-gold/75">Snapshot {index + 1}</div>

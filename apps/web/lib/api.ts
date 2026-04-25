@@ -188,7 +188,59 @@ export async function getCharacter(region: string, realm: string, characterName:
       { captured_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 6).toISOString(), score: 77.2, grade: "A-", tier: "Legend", trend: "rising", confidence: 79 },
       { captured_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(), score: 81.3, grade: "A", tier: "Legend", trend: "rising", confidence: 84 },
       { captured_at: new Date().toISOString(), score: 84.8, grade: "A", tier: "Legend", trend: "surging", confidence: 88.2 }
-    ]
+    ],
+    profile_summary: {
+      race_name: "Blood Elf",
+      faction_name: "Horde",
+      gender_name: "Female",
+      level: 80,
+      achievement_points: 28450,
+      active_title: "the Dreaming",
+      active_spec_name: "Arcane"
+    },
+    equipment: [
+      { slot: "Head", slot_key: "head", name: "Aethermancer's Hood", item_level: 678, quality: "Epic", inventory_type: "Head", enchantments: ["Starlit Intellect"], sockets: ["Deadly Sapphire"], bonuses: [], set_name: "Aethermancer Regalia", is_tier_item: true },
+      { slot: "Neck", slot_key: "neck", name: "Starforged Choker", item_level: 675, quality: "Epic", inventory_type: "Neck", enchantments: [], sockets: [], bonuses: ["Astral Resonance"], set_name: null, is_tier_item: false },
+      { slot: "Shoulder", slot_key: "shoulder", name: "Mantle of the Scrying Court", item_level: 678, quality: "Epic", inventory_type: "Shoulder", enchantments: [], sockets: [], bonuses: [], set_name: "Aethermancer Regalia", is_tier_item: true },
+      { slot: "Back", slot_key: "back", name: "Cloak of the Violet Horizon", item_level: 676, quality: "Epic", inventory_type: "Back", enchantments: ["Whisper of Leech"], sockets: [], bonuses: [], set_name: null, is_tier_item: false },
+      { slot: "Chest", slot_key: "chest", name: "Astral Archivist Robes", item_level: 678, quality: "Epic", inventory_type: "Chest", enchantments: ["Crystalline Stats"], sockets: [], bonuses: [], set_name: "Aethermancer Regalia", is_tier_item: true },
+      { slot: "Wrist", slot_key: "wrist", name: "Manacles of Living Leylines", item_level: 672, quality: "Epic", inventory_type: "Wrist", enchantments: ["Devotion of Speed"], sockets: [], bonuses: [], set_name: null, is_tier_item: false },
+      { slot: "Hands", slot_key: "hands", name: "Grips of Arcane Pressure", item_level: 676, quality: "Epic", inventory_type: "Hands", enchantments: ["Authority of Fiery Resolve"], sockets: [], bonuses: [], set_name: "Aethermancer Regalia", is_tier_item: true },
+      { slot: "Waist", slot_key: "waist", name: "Spellwoven Sash", item_level: 671, quality: "Epic", inventory_type: "Waist", enchantments: [], sockets: ["Quick Onyx"], bonuses: [], set_name: null, is_tier_item: false },
+      { slot: "Legs", slot_key: "legs", name: "Leggings of the Arc Observatory", item_level: 678, quality: "Epic", inventory_type: "Legs", enchantments: ["Daybreak Spellthread"], sockets: [], bonuses: [], set_name: null, is_tier_item: false },
+      { slot: "Feet", slot_key: "feet", name: "Cloudstride Slippers", item_level: 675, quality: "Epic", inventory_type: "Feet", enchantments: ["Defender's March"], sockets: [], bonuses: [], set_name: null, is_tier_item: false },
+      { slot: "Finger 1", slot_key: "finger-1", name: "Signet of Shifting Skies", item_level: 675, quality: "Epic", inventory_type: "Finger", enchantments: ["Radiant Haste"], sockets: [], bonuses: [], set_name: null, is_tier_item: false },
+      { slot: "Finger 2", slot_key: "finger-2", name: "Loop of the Astral Current", item_level: 672, quality: "Epic", inventory_type: "Finger", enchantments: ["Radiant Mastery"], sockets: ["Versatile Ruby"], bonuses: [], set_name: null, is_tier_item: false },
+      { slot: "Trinket 1", slot_key: "trinket-1", name: "Time-Breaching Lens", item_level: 678, quality: "Epic", inventory_type: "Trinket", enchantments: [], sockets: [], bonuses: ["On-use burst"], set_name: null, is_tier_item: false },
+      { slot: "Trinket 2", slot_key: "trinket-2", name: "Resonant Spellbeacon", item_level: 675, quality: "Epic", inventory_type: "Trinket", enchantments: [], sockets: [], bonuses: ["Passive intellect proc"], set_name: null, is_tier_item: false },
+      { slot: "Main Hand", slot_key: "main-hand", name: "Voidglass Spire", item_level: 678, quality: "Epic", inventory_type: "Staff", enchantments: ["Council's Intellect"], sockets: [], bonuses: ["Arcane nova proc"], set_name: null, is_tier_item: false },
+      { slot: "Off Hand", slot_key: "off-hand", name: "Astral Cipher Orb", item_level: 672, quality: "Epic", inventory_type: "Held In Off-hand", enchantments: [], sockets: [], bonuses: [], set_name: null, is_tier_item: false }
+    ],
+    talent_loadout: {
+      name: "Raid Arcane",
+      spec_name: "Arcane",
+      hero_tree_name: "Spellslinger",
+      loadout_code: "CAEAAAAAAAAAAAAAAAAAAAAA",
+      available_loadouts: ["Raid Arcane", "Mythic+ Burst", "Solo / Open World"],
+      class_talents: [
+        { name: "Shimmer", talent_type: "class", rank: 1, max_rank: 1, description: "Blink has 1 additional charge.", choice_of: null },
+        { name: "Ice Block", talent_type: "class", rank: 1, max_rank: 1, description: "Encases you in a block of ice.", choice_of: null },
+        { name: "Mass Barrier", talent_type: "class", rank: 1, max_rank: 1, description: "Conjures a barrier for allies.", choice_of: null }
+      ],
+      spec_talents: [
+        { name: "Arcane Surge", talent_type: "spec", rank: 1, max_rank: 1, description: "Release arcane energy to empower your spells.", choice_of: null },
+        { name: "Aether Attunement", talent_type: "spec", rank: 2, max_rank: 2, description: "Amplifies Arcane Barrage and Missiles.", choice_of: null },
+        { name: "Magi's Spark", talent_type: "spec", rank: 1, max_rank: 1, description: "Marks a target to echo your damage.", choice_of: null }
+      ],
+      hero_talents: [
+        { name: "Spellfire Spheres", talent_type: "hero", rank: 1, max_rank: 1, description: "Your barrage calls orbiting spellfire.", choice_of: null },
+        { name: "Siphoned Malice", talent_type: "hero", rank: 1, max_rank: 1, description: "Arcane burst siphons ambient power.", choice_of: null }
+      ],
+      pvp_talents: [
+        { name: "Temporal Shield", talent_type: "pvp", rank: 1, max_rank: 1, description: "Rewinds recent damage taken.", choice_of: null },
+        { name: "Master Shepherd", talent_type: "pvp", rank: 1, max_rank: 1, description: "Amplifies crowd control setups.", choice_of: null }
+      ]
+    }
   });
 }
 

@@ -81,16 +81,24 @@ class BlizzardProvider(BaseProvider):
         profile_name = quote(character_name.lower())
         summary_path = f"/profile/wow/character/{realm_slug}/{profile_name}"
         mythic_path = f"/profile/wow/character/{realm_slug}/{profile_name}/mythic-keystone-profile"
+        equipment_path = f"/profile/wow/character/{realm_slug}/{profile_name}/equipment"
+        specializations_path = f"/profile/wow/character/{realm_slug}/{profile_name}/specializations"
         summary = await self._authorized_get(region, summary_path)
-        try:
-            mythic_profile = await self._authorized_get(region, mythic_path)
-        except httpx.HTTPStatusError as exc:
-            if exc.response.status_code == 404:
-                mythic_profile = None
-            else:
-                raise
+        mythic_profile = await self._optional_profile_get(region, mythic_path)
+        equipment = await self._optional_profile_get(region, equipment_path)
+        specializations = await self._optional_profile_get(region, specializations_path)
         return {
             "source": self.name,
             "summary": summary,
             "mythic_keystone_profile": mythic_profile,
+            "equipment": equipment,
+            "specializations": specializations,
         }
+
+    async def _optional_profile_get(self, region: str, path: str) -> dict | None:
+        try:
+            return await self._authorized_get(region, path)
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code == 404:
+                return None
+            raise

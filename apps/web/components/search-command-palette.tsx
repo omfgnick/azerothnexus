@@ -106,7 +106,7 @@ export function SearchCommandPalette({
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="eyebrow">{compact ? "Azeroth Nexus search" : "Search and discovery"}</p>
-              <h2 className="mt-4 text-2xl text-white md:text-3xl" style={{ fontFamily: "var(--font-display)" }}>
+              <h2 className="mt-4 text-xl leading-tight text-white sm:text-2xl md:text-3xl" style={{ fontFamily: "var(--font-display)" }}>
                 Search Azeroth Nexus by guild, character, realm, or region.
               </h2>
             </div>
@@ -168,7 +168,7 @@ export function SearchCommandPalette({
                 className="arcane-field"
               />
             </div>
-            <div className="flex items-end gap-3">
+            <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-end">
               <button type="submit" className="arcane-button">
                 Search now
               </button>
@@ -190,7 +190,7 @@ export function SearchCommandPalette({
             <div className="rune-pill">{loading ? "Scanning" : `${results.length} echoes found`}</div>
           </div>
 
-          <div className="max-h-[420px] overflow-y-auto p-3">
+          <div className="max-h-[60vh] overflow-y-auto p-3">
             {results.length ? (
               results.map((item) => (
                 <Link
@@ -202,7 +202,7 @@ export function SearchCommandPalette({
                     <span className={`rounded-full border px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.24em] ${typeTone(item.type)}`}>
                       {item.type}
                     </span>
-                    <span className="text-lg text-white" style={{ fontFamily: "var(--font-display)" }}>
+                    <span className="text-base text-white sm:text-lg" style={{ fontFamily: "var(--font-display)" }}>
                       {item.label}
                     </span>
                     {item.match_reason ? <span className="text-xs uppercase tracking-[0.12em] text-white/40">{item.match_reason}</span> : null}

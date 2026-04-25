@@ -655,6 +655,27 @@
     border-radius: 22px;
   }
 
+  .eyebrow {
+    gap: 0.45rem;
+    font-size: 0.6rem;
+    letter-spacing: 0.28em;
+  }
+
+  .eyebrow::before,
+  .eyebrow::after {
+    width: 18px;
+  }
+
+  .display-title {
+    font-size: clamp(2.5rem, 11vw, 4rem);
+    line-height: 0.96;
+  }
+
+  .lead-copy {
+    font-size: 1rem;
+    line-height: 1.55;
+  }
+
   .panel::before {
     inset: 10px;
     border-radius: 20px;
@@ -666,8 +687,49 @@
     letter-spacing: 0.28em;
   }
 
+  .panel-section,
+  .panel-section-lg {
+    padding: 1.1rem;
+  }
+
+  .data-slab {
+    padding: 1rem;
+    border-radius: 22px;
+  }
+
+  .nav-link {
+    min-height: 42px;
+    padding: 0.72rem 0.92rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+  }
+
+  .rune-pill,
+  .rune-chip {
+    font-size: 0.64rem;
+    letter-spacing: 0.12em;
+  }
+
+  .arcane-button,
+  .arcane-button-secondary {
+    width: 100%;
+    min-height: 46px;
+    padding: 0.8rem 1rem;
+    font-size: 0.74rem;
+    letter-spacing: 0.14em;
+  }
+
   .orbit-ring {
     width: 9rem;
     height: 9rem;
+  }
+
+  .ritual-stripe::before {
+    display: none;
+  }
+
+  .citadel-grid::before,
+  .legend-frame::before {
+    opacity: 0.42;
   }
 }

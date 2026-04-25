@@ -4,8 +4,9 @@ import { NextResponse } from "next/server";
 import {
   ADMIN_SESSION_COOKIE_NAME,
   getAdminSessionCookieOptions,
-  getAdminSessionCookieValue,
   isAdminLoginConfigured,
+  isAdminSessionValueValid,
+  getAdminSessionCookieValue,
   verifyAdminCredentials,
 } from "@/lib/admin-auth";
 
@@ -13,6 +14,14 @@ type SessionRequest = {
   username?: string;
   password?: string;
 };
+
+export async function GET() {
+  const cookieStore = await cookies();
+  const sessionValue = cookieStore.get(ADMIN_SESSION_COOKIE_NAME)?.value;
+  return NextResponse.json({
+    authenticated: isAdminSessionValueValid(sessionValue),
+  });
+}
 
 export async function POST(request: Request) {
   if (!isAdminLoginConfigured()) {
