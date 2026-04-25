@@ -30,15 +30,15 @@ function trendTone(trend?: string) {
 
 export function RankingTable({ title, entries }: { title: string; entries: Entry[] }) {
   return (
-    <section className="panel overflow-hidden">
+    <section className="panel panel-legendary overflow-hidden">
       <div className="relative border-b border-white/10 px-6 py-6 md:px-8">
-        <div className="absolute inset-x-10 bottom-0 h-px bg-gradient-to-r from-transparent via-gold/55 to-transparent" />
+        <div className="absolute inset-x-10 bottom-0 h-px bg-gradient-to-r from-transparent via-gold/60 to-transparent" />
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="eyebrow">Guild rankings</p>
+            <p className="eyebrow">Guild warboard</p>
             <h2 className="mt-4 section-title">{title}</h2>
-            <p className="mt-3 max-w-2xl text-sm text-white/60">
-              Composite scoring, rune-marked tiers, trend reading, confidence, and dimension-by-dimension notes for each contender.
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-white/62">
+              Composite scoring, rank intelligence, tier seals, momentum reads, and dimension notes arranged as a ceremonial command ledger.
             </p>
           </div>
           <div className="rune-pill">Composite score matrix</div>
@@ -51,18 +51,20 @@ export function RankingTable({ title, entries }: { title: string; entries: Entry
           const topDimensions = dimensions.slice(0, 2);
 
           return (
-            <article key={`${entry.rank}-${entry.label}`} className="px-6 py-6 md:px-8">
-              <div className="grid gap-5 xl:grid-cols-[104px_1fr_240px]">
-                <div className="flex h-24 w-24 flex-col items-center justify-center rounded-[1.7rem] border border-gold/25 bg-[radial-gradient(circle,rgba(214,190,144,0.16),rgba(110,203,255,0.08),rgba(3,6,14,0.86))] text-center shadow-[0_18px_44px_rgba(0,0,0,0.28)]">
-                  <div className="text-[0.6rem] uppercase tracking-[0.34em] text-gold/75">Rank</div>
-                  <div className="mt-2 text-3xl text-gold" style={{ fontFamily: "var(--font-display)" }}>
+            <article key={`${entry.rank}-${entry.label}`} className="relative px-6 py-6 md:px-8">
+              <div className="absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/6 to-transparent" />
+              <div className="grid gap-5 xl:grid-cols-[120px_1fr_250px]">
+                <div className="relative flex h-28 w-28 flex-col items-center justify-center rounded-[2rem] border border-gold/25 bg-[radial-gradient(circle,rgba(214,190,144,0.18),rgba(110,203,255,0.08),rgba(3,6,14,0.88))] text-center shadow-[0_18px_44px_rgba(0,0,0,0.32)]">
+                  <div className="absolute inset-[8px] rounded-[1.55rem] border border-white/10" />
+                  <div className="relative text-[0.6rem] uppercase tracking-[0.34em] text-gold/75">Rank</div>
+                  <div className="relative mt-2 text-3xl text-gold" style={{ fontFamily: "var(--font-display)" }}>
                     #{entry.rank}
                   </div>
                 </div>
 
                 <div className="space-y-4">
                   <div className="flex flex-wrap items-center gap-2">
-                    <div className="text-2xl text-white" style={{ fontFamily: "var(--font-display)" }}>
+                    <div className="text-[1.9rem] text-white" style={{ fontFamily: "var(--font-display)" }}>
                       {entry.label}
                     </div>
                     {entry.grade ? (
@@ -82,8 +84,8 @@ export function RankingTable({ title, entries }: { title: string; entries: Entry
                     ) : null}
                   </div>
 
-                  {entry.subtitle ? <div className="text-sm uppercase tracking-[0.2em] text-white/40">{entry.subtitle}</div> : null}
-                  {entry.explanation ? <p className="max-w-3xl text-sm text-white/70">{entry.explanation}</p> : null}
+                  {entry.subtitle ? <div className="text-sm uppercase tracking-[0.22em] text-white/38">{entry.subtitle}</div> : null}
+                  {entry.explanation ? <p className="max-w-3xl text-sm leading-7 text-white/70">{entry.explanation}</p> : null}
 
                   {topDimensions.length ? (
                     <div className="flex flex-wrap gap-2">
@@ -122,7 +124,7 @@ export function RankingTable({ title, entries }: { title: string; entries: Entry
                       <div className="mt-3 text-2xl text-white" style={{ fontFamily: "var(--font-display)" }}>
                         {dimension.score.toFixed(1)}
                       </div>
-                      <p className="mt-3 text-sm text-white/60">{dimension.note}</p>
+                      <p className="mt-3 text-sm leading-7 text-white/60">{dimension.note}</p>
                     </div>
                   ))}
                 </div>

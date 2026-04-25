@@ -10,6 +10,8 @@ type Dictionary = {
     eyebrow: string;
     summary: string;
     status: string;
+    charterTitle: string;
+    charterDescription: string;
     nav: {
       rankings: string;
       search: string;
@@ -30,6 +32,13 @@ type Dictionary = {
     warboardDetail: string;
     archiveLabel: string;
     archiveDetail: string;
+    signatureLabel: string;
+    signatureTitle: string;
+    signatureDescription: string;
+    commandLabel: string;
+    commandDescription: string;
+    warboardValue: string;
+    archiveValue: string;
   };
   admin: {
     loginEyebrow: string;
@@ -48,6 +57,9 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
       eyebrow: "Interface Arcane Observatory",
       summary: "Uma war-room para momentum de guilds, sinais de raid, scouting de roster e poder de personagem com identidade forte de Azeroth.",
       status: "Malha astral online",
+      charterTitle: "Observatorio arcano para inteligencia publica de Warcraft.",
+      charterDescription:
+        "Rankings, scouting, progresso, operacoes e controle administrativo organizados como uma unica cidadela ritual.",
       nav: {
         rankings: "Rankings",
         search: "Busca",
@@ -73,6 +85,14 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
       warboardDetail: "Trilhas runicas e fortalezas fazem o ranking parecer uma camara viva de comando.",
       archiveLabel: "Foco do arquivo",
       archiveDetail: "A busca agora parece uma biblioteca ritual, nao um formulario generico.",
+      signatureLabel: "Assinatura do nexus",
+      signatureTitle: "Inteligencia de World of Warcraft conjurada como uma fortaleza celestial.",
+      signatureDescription: "Menos dashboard. Mais camara ritual, conselho de guerra e arquivo vivo.",
+      commandLabel: "Comando de videncia",
+      commandDescription:
+        "A busca continua sendo a forma mais rapida de entrar no Nexus, agora apoiada em um verdadeiro dais runico em vez de se dissolver no layout.",
+      warboardValue: "Radar de guildas",
+      archiveValue: "Mesa de videncia",
     },
     admin: {
       loginEyebrow: "Acesso admin protegido",
@@ -90,6 +110,9 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
       eyebrow: "Arcane Observatory Interface",
       summary: "A war-room for guild momentum, raid omens, roster scouting, and character power with a stronger Azerothian identity.",
       status: "Astral lattice online",
+      charterTitle: "Arcane observatory for public Warcraft intelligence.",
+      charterDescription:
+        "Rankings, scouting, progression, operations, and admin control arranged as one ritual command citadel.",
       nav: {
         rankings: "Rankings",
         search: "Search",
@@ -115,6 +138,14 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
       warboardDetail: "Runic trails and strongholds make the ranking layer feel like a live command chamber.",
       archiveLabel: "Archive focus",
       archiveDetail: "Search now reads like a ritual library, not a plain utility form dropped into the page.",
+      signatureLabel: "Nexus signature",
+      signatureTitle: "World of Warcraft intelligence cast as a celestial stronghold.",
+      signatureDescription: "Less dashboard. More ritual chamber, war council, and living archive.",
+      commandLabel: "Scrying command",
+      commandDescription:
+        "Search remains the fastest way inside the Nexus, now seated on a proper runic dais instead of dissolving into the page chrome.",
+      warboardValue: "Guild Radar",
+      archiveValue: "Scrying Desk",
     },
     admin: {
       loginEyebrow: "Protected admin access",
