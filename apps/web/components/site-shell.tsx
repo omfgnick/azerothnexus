@@ -40,94 +40,79 @@ type SiteShellProps = {
 export function SiteShell({ children, locale, copy }: SiteShellProps) {
   const pathname = usePathname();
   const navLinks = [
-    { href: "/", label: copy.home, icon: NexusCrestIcon },
-    { href: "/rankings", label: copy.nav.rankings, icon: WarboardSigilIcon },
-    { href: "/search", label: copy.nav.search, icon: SearchSigilIcon },
-    { href: "/compare", label: copy.nav.compare, icon: CompareSigilIcon },
-    { href: "/search?type=guild", label: copy.nav.guilds, icon: GuildSigilIcon },
-    { href: "/search?type=character", label: copy.nav.characters, icon: ChampionSigilIcon },
-    { href: "/admin", label: copy.nav.admin, icon: NexusCrestIcon },
+    { href: "/", matchPath: "/", label: copy.home, icon: NexusCrestIcon },
+    { href: "/rankings", matchPath: "/rankings", label: copy.nav.rankings, icon: WarboardSigilIcon },
+    { href: "/search?type=guild", matchPath: "/search", label: copy.nav.guilds, icon: GuildSigilIcon },
+    { href: "/search?type=character", matchPath: "/search", label: copy.nav.characters, icon: ChampionSigilIcon },
+    { href: "/compare", matchPath: "/compare", label: copy.nav.compare, icon: CompareSigilIcon },
+    { href: "/search", matchPath: "/search", label: copy.nav.search, icon: SearchSigilIcon },
   ];
 
   return (
-    <div className="min-h-screen bg-transparent text-[var(--text-main)]">
-      <div className="sticky top-0 z-40 border-b border-white/8 bg-[rgba(4,7,16,0.9)] backdrop-blur-[20px]">
-        <div className="mx-auto flex max-w-[1440px] items-center gap-4 px-4 py-3 sm:px-6 lg:px-8">
-          <Link href="/" className="mr-2 flex min-w-0 items-center gap-3">
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-[10px] border border-gold/25 bg-[linear-gradient(135deg,rgba(193,147,64,0.2),rgba(193,147,64,0.06))]">
-              <div className="absolute inset-[3px] rounded-[7px] border border-gold/15" />
-              <NexusCrestIcon className="h-4 w-4 text-gold" />
+    <div className="page">
+      <nav className="an-nav">
+        <div className="an-nav-inner">
+          <Link href="/" className="an-nav-brand">
+            <div className="an-nav-brand-crest">
+              <NexusCrestIcon className="h-[14px] w-[14px] text-gold" />
             </div>
-            <div className="min-w-0">
-              <div className="truncate font-['Cinzel',serif] text-[0.8rem] uppercase tracking-[0.24em] text-gold">Azeroth Nexus</div>
-              <div className="hidden truncate text-xs text-white/38 md:block">{copy.summary}</div>
-            </div>
+            <span className="an-nav-brand-text">Azeroth Nexus</span>
           </Link>
 
-          <nav className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto pb-1">
+          <ul className="an-nav-links">
             {navLinks.map((link) => {
               const isActive =
-                link.href === "/"
+                link.matchPath === "/"
                   ? pathname === "/"
-                  : pathname === link.href || pathname.startsWith(`${link.href}/`);
+                  : pathname === link.matchPath || pathname.startsWith(`${link.matchPath}/`);
 
               return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`inline-flex min-h-[40px] min-w-max items-center gap-2 rounded-[10px] border px-3.5 py-2 text-[0.72rem] font-semibold uppercase tracking-[0.14em] transition ${
-                    isActive
-                      ? "border-gold/25 bg-white/[0.05] text-gold"
-                      : "border-transparent text-white/50 hover:border-white/10 hover:bg-white/[0.04] hover:text-white"
-                  }`}
-                >
-                  <link.icon className="h-4 w-4" />
-                  <span>{link.label}</span>
-                </Link>
+                <li key={link.href}>
+                  <Link href={link.href} className={isActive ? "active" : undefined}>
+                    <link.icon className="h-3.5 w-3.5 shrink-0 opacity-80" />
+                    <span>{link.label}</span>
+                  </Link>
+                </li>
               );
             })}
-          </nav>
+          </ul>
 
-          <div className="ml-auto hidden items-center gap-3 lg:flex">
-            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-white/48">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(74,222,128,0.8)]" />
-              <span>{copy.status}</span>
+          <div className="an-nav-right">
+            <div className="an-nav-status" title={copy.status}>
+              <div className="an-nav-status-dot" />
             </div>
-            <Link
-              href="/search"
-              className="inline-flex min-h-[40px] items-center gap-2 rounded-[10px] border border-white/8 bg-white/[0.04] px-4 py-2 text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-white/70 transition hover:border-white/14 hover:bg-white/[0.06] hover:text-white"
-            >
-              <SearchSigilIcon className="h-4 w-4" />
+            <Link href="/search" className="an-nav-search-btn">
+              <SearchSigilIcon className="h-3.5 w-3.5" />
               <span>{copy.nav.search}</span>
-              <kbd className="rounded border border-white/12 bg-white/[0.04] px-1.5 py-0.5 font-['Space_Mono',monospace] text-[10px] text-white/55">/</kbd>
+              <kbd>/</kbd>
             </Link>
-            <LocaleToggle locale={locale} />
+            <div className="an-locale-wrap">
+              <LocaleToggle locale={locale} />
+            </div>
           </div>
         </div>
-      </div>
+      </nav>
 
-      <main className="mx-auto max-w-[1440px] px-4 pb-16 pt-10 sm:px-6 lg:px-8">{children}</main>
+      <main className="an-main">{children}</main>
 
-      <footer className="mt-10 border-t border-white/8 bg-[rgba(4,7,16,0.78)]">
-        <div className="mx-auto flex max-w-[1440px] flex-col gap-5 px-4 py-8 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-          <div className="font-['Cinzel',serif] text-sm uppercase tracking-[0.22em] text-gold">Azeroth Nexus</div>
-          <div className="flex flex-wrap gap-4 text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-white/55">
-            <Link href="/rankings" className="transition hover:text-white">
-              {copy.nav.rankings}
-            </Link>
-            <Link href="/search" className="transition hover:text-white">
-              {copy.nav.search}
-            </Link>
-            <Link href="/compare" className="transition hover:text-white">
-              {copy.nav.compare}
-            </Link>
-            <Link href="/admin" className="transition hover:text-white">
-              {copy.nav.admin}
-            </Link>
-          </div>
-          <div className="text-xs text-white/38">
-            {copy.footerNote}
-          </div>
+      <footer className="an-footer">
+        <div className="an-footer-inner">
+          <span className="an-footer-brand">Azeroth Nexus</span>
+          <ul className="an-footer-links">
+            <li>
+              <Link href="/rankings">{copy.nav.rankings}</Link>
+            </li>
+            <li>
+              <Link href="/search">{copy.nav.search}</Link>
+            </li>
+            <li>
+              <Link href="/compare">{copy.nav.compare}</Link>
+            </li>
+            <li>
+              <Link href="/admin">{copy.nav.admin}</Link>
+            </li>
+          </ul>
+          <span className="an-footer-note">{copy.footerNote}</span>
         </div>
       </footer>
     </div>

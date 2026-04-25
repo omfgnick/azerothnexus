@@ -20,9 +20,9 @@ type Props = {
 
 function SearchSigil() {
   return (
-    <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" aria-hidden="true">
-      <path d="M13.75 13.75L17 17" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      <circle cx="8.75" cy="8.75" r="5.75" stroke="currentColor" strokeWidth="1.8" />
+    <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4" aria-hidden="true">
+      <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.8" />
+      <line x1="11" y1="11" x2="15" y2="15" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
     </svg>
   );
 }
@@ -63,7 +63,7 @@ export function SearchCommandPalette({
   initialRealm = "",
   initialGuild = "",
   initialType = "all",
-  compact = false
+  compact = false,
 }: Props) {
   const { copy } = useLocaleCopy();
   const labels = copy.searchPalette;
@@ -90,7 +90,7 @@ export function SearchCommandPalette({
         setLoading(true);
         const response = await fetch(buildAutocompleteUrl(query.trim(), region, realm, guild, type), {
           signal: controller.signal,
-          credentials: "include"
+          credentials: "include",
         });
         if (!response.ok) {
           setResults([]);
@@ -115,52 +115,43 @@ export function SearchCommandPalette({
     <div className={`relative ${compact ? "" : "mt-8"}`}>
       <form action="/search" className={`relative overflow-visible ${compact ? "" : "panel panel-section"}`}>
         {compact ? (
-          <div className="overflow-hidden rounded-[18px] border border-white/10 bg-[linear-gradient(180deg,rgba(14,22,40,0.98),rgba(8,13,24,0.98))] shadow-[0_24px_56px_rgba(0,0,0,0.34)]">
-            <div className="flex flex-col lg:flex-row lg:items-center">
-              <div className="relative min-w-0 flex-1">
-                <div className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-white/35">
-                  <SearchSigil />
-                </div>
-                <input
-                  name="q"
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  onFocus={() => setFocused(true)}
-                  onBlur={() => window.setTimeout(() => setFocused(false), 120)}
-                  placeholder={labels.compactPlaceholder}
-                  className="h-14 w-full border-b border-white/8 bg-transparent pl-12 pr-4 text-base text-white outline-none transition placeholder:text-white/36 lg:border-b-0 lg:border-r lg:border-white/8"
-                />
+          <>
+            <div className="an-search-bar">
+              <div className="an-search-icon">
+                <SearchSigil />
               </div>
-
-              <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between lg:min-w-[420px] lg:p-2">
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    ["all", labels.all],
-                    ["guild", labels.guild],
-                    ["character", labels.character],
-                    ["realm", labels.realm],
-                  ].map(([value, label]) => (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => setType(value)}
-                      className={`rounded-[8px] border px-3 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.14em] transition ${
-                        type === value
-                          ? "border-gold/35 bg-white/[0.06] text-gold"
-                          : "border-transparent text-white/55 hover:border-white/12 hover:bg-white/[0.04] hover:text-white"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-
-                <Link href={href} className="arcane-button min-w-[168px]">
-                  {loading ? labels.scanning : labels.openResults}
-                </Link>
+              <input
+                name="q"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                onFocus={() => setFocused(true)}
+                onBlur={() => window.setTimeout(() => setFocused(false), 120)}
+                placeholder={labels.compactPlaceholder}
+                className="an-search-input"
+              />
+              <input type="hidden" name="type" value={type} />
+              <div className="an-search-filters">
+                {[
+                  ["all", labels.all],
+                  ["guild", labels.guild],
+                  ["character", labels.character],
+                  ["realm", labels.realm],
+                ].map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setType(value)}
+                    className={`an-search-filter ${type === value ? "active" : ""}`}
+                  >
+                    {label}
+                  </button>
+                ))}
               </div>
             </div>
-          </div>
+            <button type="submit" className="sr-only">
+              {labels.openResults}
+            </button>
+          </>
         ) : (
           <>
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_left,rgba(110,203,255,0.12),transparent_0_24%),radial-gradient(circle_at_right,rgba(214,190,144,0.12),transparent_0_24%)]" />

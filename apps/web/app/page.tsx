@@ -11,6 +11,34 @@ function HomeSectionSkeleton({ height = "h-[320px]" }: { height?: string }) {
   return <div className={`animate-pulse rounded-[24px] border border-white/8 bg-white/[0.03] ${height}`} />;
 }
 
+function uniqueRealmsFromLadder(subtitles: Array<string | undefined>) {
+  return Array.from(
+    new Set(
+      subtitles
+        .map((subtitle) => subtitle?.split("Â·").join("·").split("·")[1]?.trim())
+        .filter((value): value is string => Boolean(value)),
+    ),
+  ).length;
+}
+
+function bossDifficultyToken(boss: { difficulty?: string | null; status?: string | null }) {
+  const difficulty = (boss.difficulty ?? boss.status ?? "").toLowerCase();
+  if (difficulty.includes("mythic")) {
+    return { label: "M", className: "mythic" };
+  }
+  if (difficulty.includes("heroic")) {
+    return { label: "H", className: "heroic" };
+  }
+  return { label: "N", className: "normal" };
+}
+
+function activityTone(type: string) {
+  if (type === "guild") return "guild";
+  if (type === "character") return "char";
+  if (type === "mythic_plus" || type === "mythic-plus" || type === "dungeon") return "mythic";
+  return "raid";
+}
+
 async function HomeHeroSection({ copy }: { copy: Awaited<ReturnType<typeof getDictionary>>["copy"] }) {
   const [ladder, raid, mythic, activity] = await Promise.all([
     getGuildLadder(),
@@ -21,28 +49,29 @@ async function HomeHeroSection({ copy }: { copy: Awaited<ReturnType<typeof getDi
 
   const topGuild = ladder.entries?.[0];
   const hasFallback = [ladder, raid, mythic, activity].some(isFallbackData);
+  const uniqueRealms = uniqueRealmsFromLadder(ladder.entries.map((entry) => entry.subtitle));
   const metricDetails = copy.hero.readings.slice(0, 4);
   const metrics: HeroMetric[] = [
     {
-      label: metricDetails[0]?.label ?? "Visible guilds",
+      label: metricDetails[0]?.label ?? "Tracked entities",
       value: String(ladder.entries.length),
       detail: metricDetails[0]?.detail,
       tone: "gold",
     },
     {
-      label: metricDetails[1]?.label ?? "Live events",
-      value: String(activity.items.length),
+      label: metricDetails[1]?.label ?? "Visible realms",
+      value: String(uniqueRealms),
       detail: metricDetails[1]?.detail,
-      tone: "cyan",
-    },
-    {
-      label: metricDetails[2]?.label ?? "Raid bosses",
-      value: String(raid.bosses.length),
-      detail: metricDetails[2]?.detail,
       tone: "default",
     },
     {
-      label: metricDetails[3]?.label ?? "Feed state",
+      label: metricDetails[2]?.label ?? "Live events",
+      value: String(activity.items.length),
+      detail: metricDetails[2]?.detail,
+      tone: "cyan",
+    },
+    {
+      label: metricDetails[3]?.label ?? "Update cycle",
       value: hasFallback ? copy.shared.fallback : copy.shared.live,
       detail: metricDetails[3]?.detail,
       tone: hasFallback ? "default" : "green",
@@ -65,12 +94,10 @@ async function HomeHeroSection({ copy }: { copy: Awaited<ReturnType<typeof getDi
       {
         label: copy.home.topGuildTier,
         value: topGuild?.tier ?? "--",
-        tone: "default",
       },
       {
         label: copy.home.signalState,
         value: hasFallback ? copy.shared.partial : copy.shared.stable,
-        tone: hasFallback ? "default" : "green",
       },
     ],
     details: [
@@ -101,22 +128,24 @@ async function HomeRankingSection({ copy }: { copy: Awaited<ReturnType<typeof ge
   const ladder = await getGuildLadder();
 
   return (
-    <section className="space-y-5">
+    <section>
       {isFallbackData(ladder) ? (
-        <DataStateBanner
-          title={copy.home.rankingBannerTitle}
-          description={copy.home.rankingBannerDescription}
-          error={ladder._requestError}
-          detailLabel={copy.dataState.technicalDetail}
-        />
+        <div className="mb-5">
+          <DataStateBanner
+            title={copy.home.rankingBannerTitle}
+            description={copy.home.rankingBannerDescription}
+            error={ladder._requestError}
+            detailLabel={copy.dataState.technicalDetail}
+          />
+        </div>
       ) : null}
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-2">
-          <div className="eyebrow">{copy.home.rankingsEyebrow}</div>
-          <h2 className="section-title">{copy.home.rankingsTitle}</h2>
+      <div className="an-section-head an-animate-in an-delay-1">
+        <div className="an-section-label">
+          <div className="an-section-eyebrow">{copy.home.rankingsEyebrow}</div>
+          <h2 className="an-section-title">{copy.home.rankingsTitle}</h2>
         </div>
-        <Link href="/rankings" className="arcane-button-secondary">
+        <Link href="/rankings" className="an-section-action">
           {copy.home.openWarboard}
         </Link>
       </div>
@@ -137,119 +166,100 @@ async function HomeIntelligenceSection({ copy }: { copy: Awaited<ReturnType<type
   const popularDungeons = mythic.meta_analysis?.most_played_dungeons ?? [];
 
   return (
-    <section className="space-y-5">
+    <section>
       {hasFallback ? (
-        <DataStateBanner
-          title={copy.home.intelligenceBannerTitle}
-          description={copy.home.intelligenceBannerDescription}
-          error={[activity, mythic, raid].find(isFallbackData)?._requestError ?? null}
-          detailLabel={copy.dataState.technicalDetail}
-        />
+        <div className="mb-5">
+          <DataStateBanner
+            title={copy.home.intelligenceBannerTitle}
+            description={copy.home.intelligenceBannerDescription}
+            error={[activity, mythic, raid].find(isFallbackData)?._requestError ?? null}
+            detailLabel={copy.dataState.technicalDetail}
+          />
+        </div>
       ) : null}
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="space-y-2">
-          <div className="eyebrow">{copy.home.intelligenceEyebrow}</div>
-          <h2 className="section-title">{copy.home.intelligenceTitle}</h2>
+      <div className="an-section-head">
+        <div className="an-section-label">
+          <div className="an-section-eyebrow">{copy.home.intelligenceEyebrow}</div>
+          <h2 className="an-section-title">{copy.home.intelligenceTitle}</h2>
         </div>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-3">
-        <div className="rounded-[24px] border border-white/8 bg-[linear-gradient(180deg,rgba(14,22,40,0.98),rgba(8,13,24,0.98))] p-5 shadow-[0_24px_60px_rgba(0,0,0,0.32)]">
-          <div className="flex items-center justify-between gap-4">
-            <div className="text-[0.72rem] uppercase tracking-[0.24em] text-gold/75">{copy.home.activityFeed}</div>
-            <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[0.66rem] uppercase tracking-[0.16em] text-white/55">
+      <div className="an-bottom-grid">
+        <div className="an-panel an-animate-in an-delay-1">
+          <div className="an-panel-head">
+            <span className="an-panel-label gold">{copy.home.activityFeed}</span>
+            <span className="an-panel-count">
               {activity.items.length} {copy.home.eventsLabel}
-            </div>
+            </span>
           </div>
-
-          <div className="mt-5 space-y-3">
+          <div className="an-panel-body">
             {activity.items.length ? (
               activity.items.slice(0, 6).map((item) => (
-                <div key={`${item.type}-${item.title}-${item.created_at}`} className="rounded-[16px] border border-white/8 bg-white/[0.03] px-4 py-3">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <div className="text-sm font-semibold text-white">{item.title}</div>
-                      {item.subtitle ? <div className="mt-1 text-sm text-white/55">{item.subtitle}</div> : null}
-                    </div>
-                    <div className="text-[0.68rem] uppercase tracking-[0.18em] text-white/38">{item.type}</div>
+                <div key={`${item.type}-${item.title}-${item.created_at}`} className="an-activity-item">
+                  <div className={`an-activity-dot ${activityTone(item.type)}`} />
+                  <div>
+                    <div className="an-activity-name">{item.title}</div>
+                    <div className="an-activity-sub">{item.subtitle ?? "--"}</div>
                   </div>
+                  <span className="an-activity-time">{new Date(item.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                 </div>
               ))
             ) : (
-              <div className="rounded-[16px] border border-dashed border-white/12 bg-black/20 px-4 py-5 text-sm text-white/55">
-                {copy.home.noActivity}
-              </div>
+              <div className="an-panel-empty">{copy.home.noActivity}</div>
             )}
           </div>
         </div>
 
-        <div className="rounded-[24px] border border-white/8 bg-[linear-gradient(180deg,rgba(14,22,40,0.98),rgba(8,13,24,0.98))] p-5 shadow-[0_24px_60px_rgba(0,0,0,0.32)]">
-          <div className="flex items-center justify-between gap-4">
-            <div className="text-[0.72rem] uppercase tracking-[0.24em] text-sky-100/80">{copy.home.mythicMeta}</div>
-            <div className="rounded-full border border-sky-300/14 bg-sky-500/10 px-3 py-1 text-[0.66rem] uppercase tracking-[0.16em] text-sky-100/80">
+        <div className="an-panel an-animate-in an-delay-2">
+          <div className="an-panel-head">
+            <span className="an-panel-label cyan">{copy.home.mythicMeta}</span>
+            <span className="an-panel-count cyan">
               {mythic.meta_analysis?.timed_ratio ? `${mythic.meta_analysis.timed_ratio}% ${copy.home.timedSuffix}` : "--"}
-            </div>
+            </span>
           </div>
-
-          <div className="mt-5 space-y-3">
+          <div className="an-panel-body">
             {popularDungeons.length ? (
-              popularDungeons.slice(0, 5).map((dungeon: string, index: number) => (
-                <div key={dungeon} className="space-y-2 rounded-[16px] border border-white/8 bg-white/[0.03] px-4 py-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-sm font-semibold text-white">{dungeon}</span>
-                    <span className="font-['Space_Mono',monospace] text-xs text-white/45">
-                      {Math.max(100 - index * 8, 64)}%
-                    </span>
+              popularDungeons.slice(0, 8).map((dungeon: string, index: number) => {
+                const width = Math.max(55, 92 - index * 6);
+                return (
+                  <div key={dungeon} className="an-dungeon-item">
+                    <span className="an-dungeon-name">{dungeon}</span>
+                    <div className="an-dungeon-bar-wrap">
+                      <div className="an-dungeon-bar" style={{ width: `${width}%` }} />
+                    </div>
+                    <span className="an-dungeon-pct">{width}%</span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-white/6">
-                    <div
-                      className="h-full rounded-full bg-[linear-gradient(90deg,#4CC9F0,rgba(76,201,240,0.28))]"
-                      style={{ width: `${Math.max(100 - index * 8, 64)}%` }}
-                    />
-                  </div>
-                </div>
-              ))
+                );
+              })
             ) : (
-              <div className="rounded-[16px] border border-dashed border-white/12 bg-black/20 px-4 py-5 text-sm text-white/55">
-                {copy.home.noMythicRoutes}
-              </div>
+              <div className="an-panel-empty">{copy.home.noMythicRoutes}</div>
             )}
           </div>
         </div>
 
-        <div className="rounded-[24px] border border-white/8 bg-[linear-gradient(180deg,rgba(14,22,40,0.98),rgba(8,13,24,0.98))] p-5 shadow-[0_24px_60px_rgba(0,0,0,0.32)]">
-          <div className="flex items-center justify-between gap-4">
-            <div className="text-[0.72rem] uppercase tracking-[0.24em] text-gold/75">{copy.home.seasonWatch}</div>
-            <div className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[0.66rem] uppercase tracking-[0.16em] text-white/55">
-              {raid.raid?.season ?? "--"}
-            </div>
+        <div className="an-panel an-animate-in an-delay-3">
+          <div className="an-panel-head">
+            <span className="an-panel-label purple">{raid.raid?.name ?? copy.home.currentRaid}</span>
+            <span className="an-panel-count purple">
+              {raid.bosses.length} {copy.home.bossesVisible}
+            </span>
           </div>
-
-          <div className="mt-5 rounded-[18px] border border-white/8 bg-black/20 px-4 py-3">
-            {[
-              [copy.home.currentRaid, raid.raid?.name ?? "--"],
-              [copy.home.bossesVisible, String(raid.bosses.length)],
-              [copy.home.worldTracker, String((raid.world_first_tracker ?? []).length)],
-              [copy.home.heatmapReady, raid.heatmap_ready ? copy.shared.yes : copy.shared.no],
-            ].map(([label, value], index, rows) => (
-              <div
-                key={label}
-                className={`flex items-center justify-between gap-4 py-3 ${index < rows.length - 1 ? "border-b border-white/8" : ""}`}
-              >
-                <span className="text-sm text-white/55">{label}</span>
-                <span className="text-sm font-semibold text-white">{value}</span>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-5 flex flex-wrap gap-3">
-            <Link href="/search" className="arcane-button">
-              {copy.home.searchArchive}
-            </Link>
-            <Link href="/compare" className="arcane-button-secondary">
-              {copy.home.compareEntities}
-            </Link>
+          <div className="an-panel-body">
+            {raid.bosses.length ? (
+              raid.bosses.slice(0, 8).map((boss, index) => {
+                const difficulty = bossDifficultyToken(boss);
+                return (
+                  <div key={`${boss.slug ?? boss.name ?? index}`} className="an-boss-item">
+                    <span className="an-boss-num">{String(index + 1).padStart(2, "0")}</span>
+                    <span className="an-boss-name">{boss.name ?? "--"}</span>
+                    <span className={`an-boss-diff ${difficulty.className}`}>{difficulty.label}</span>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="an-panel-empty">{copy.home.currentRaid}</div>
+            )}
           </div>
         </div>
       </div>
@@ -259,23 +269,19 @@ async function HomeIntelligenceSection({ copy }: { copy: Awaited<ReturnType<type
 
 function HomeCtaSection({ copy }: { copy: Awaited<ReturnType<typeof getDictionary>>["copy"] }) {
   return (
-    <section className="rounded-[26px] border border-white/8 bg-[linear-gradient(180deg,rgba(14,22,40,0.96),rgba(8,13,24,0.98))] px-5 py-6 shadow-[0_28px_64px_rgba(0,0,0,0.36)] sm:px-7 sm:py-7">
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h2 className="text-[1.5rem] text-white sm:text-[1.9rem]" style={{ fontFamily: "var(--font-display)" }}>
-            {copy.home.ctaTitle}
-          </h2>
-          <p className="mt-3 max-w-3xl text-sm leading-7 text-white/60 sm:text-base">{copy.home.ctaDescription}</p>
-        </div>
-
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <Link href="/compare" className="arcane-button">
-            {copy.home.openCompare}
-          </Link>
-          <Link href="/admin" className="arcane-button-secondary">
-            {copy.home.adminPanel}
-          </Link>
-        </div>
+    <section className="an-cta-strip an-animate-in an-delay-1">
+      <div className="an-cta-text">
+        <div className="an-cta-title">{copy.home.ctaTitle}</div>
+        <div className="an-cta-sub">{copy.home.ctaDescription}</div>
+      </div>
+      <div className="an-cta-actions">
+        <Link href="/compare" className="an-btn an-btn-primary">
+          {copy.home.openCompare}
+          <span>→</span>
+        </Link>
+        <Link href="/admin" className="an-btn an-btn-secondary">
+          {copy.home.adminPanel}
+        </Link>
       </div>
     </section>
   );
@@ -285,7 +291,7 @@ export default async function HomePage() {
   const { copy } = await getDictionary();
 
   return (
-    <div className="page-shell space-y-12">
+    <div className="space-y-14">
       <Suspense fallback={<HomeSectionSkeleton height="h-[420px]" />}>
         <HomeHeroSection copy={copy} />
       </Suspense>

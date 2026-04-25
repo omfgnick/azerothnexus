@@ -42,6 +42,8 @@ export type Dictionary = {
   };
   hero: {
     eyebrow: string;
+    titleLead: string;
+    titleAccent: string;
     title: string;
     description: string;
     readings: Array<{ label: string; detail: string }>;
@@ -134,6 +136,18 @@ export type Dictionary = {
     guildWarboard: string;
     liveScore: string;
     rankingReadout: string;
+    filter: string;
+    regionTabs: {
+      us: string;
+      eu: string;
+      kr: string;
+      tw: string;
+    };
+    modeTabs: {
+      raid: string;
+      mythicPlus: string;
+      combined: string;
+    };
     columns: {
       rank: string;
       guild: string;
@@ -542,7 +556,7 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
       eyebrow: "World of Warcraft Intelligence",
       summary: "Consulta publica de guildas, personagens, progresso de raid e sinais de Mythic+ com linguagem visual de warboard premium.",
       status: "Feed publico online",
-      home: "Inicio",
+      home: "Painel",
       charterTitle: "Warcraft intelligence for public consultation.",
       charterDescription:
         "Rankings, scouting, progresso, operacoes e controle administrativo organizados como um command center elegante e objetivo.",
@@ -575,14 +589,16 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
     },
     hero: {
       eyebrow: "World of Warcraft Intelligence",
+      titleLead: "Dados de comando",
+      titleAccent: "de ranking",
       title: "Dados de ranking, progresso e scouting para Azeroth em um front realmente operacional.",
       description:
-        "Guild progression, Mythic+ form, character power e leitura publica de atividade em uma interface mais limpa, mais afiada e muito mais confiavel.",
+        "Progresso de guilda, rankings de Mythic+ e analise de personagens agregados entre reinos e regioes em um warboard vivo e muito mais fiel ao front novo.",
       readings: [
-        { label: "Guildas visiveis", detail: "Entradas que chegaram no warboard atual" },
+        { label: "Entidades rastreadas", detail: "Entradas publicas carregadas neste warboard" },
+        { label: "Reinos visiveis", detail: "Escopo dos reinos retornados pela leitura atual" },
         { label: "Eventos vivos", detail: "Ocorrencias publicas expostas pelo feed" },
-        { label: "Bosses de raid", detail: "Encontros retornados pela leitura atual" },
-        { label: "Estado do feed", detail: "Sinal do conjunto de endpoints desta abertura" },
+        { label: "Ciclo de update", detail: "Estado do sync e da disponibilidade dos endpoints" },
       ],
       observatoryEyebrow: "Season overview",
       observatoryTitle: "Leitura consolidada da temporada, do warboard e do feed.",
@@ -678,6 +694,18 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
       guildWarboard: "Warboard de guildas",
       liveScore: "Score ao vivo",
       rankingReadout: "Leitura de ranking",
+      filter: "Filtro",
+      regionTabs: {
+        us: "US",
+        eu: "EU",
+        kr: "KR",
+        tw: "TW",
+      },
+      modeTabs: {
+        raid: "Raid",
+        mythicPlus: "Mythic+",
+        combined: "Combinado",
+      },
       columns: {
         rank: "#",
         guild: "Guilda",
@@ -1136,7 +1164,7 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
       eyebrow: "World of Warcraft Intelligence",
       summary: "Public consultation for guilds, characters, raid progress, and Mythic+ signals in a sharper premium warboard interface.",
       status: "Public feed online",
-      home: "Home",
+      home: "Dashboard",
       charterTitle: "Warcraft intelligence for public consultation.",
       charterDescription:
         "Rankings, scouting, progression, operations, and admin control arranged as an elegant, data-first command center.",
@@ -1169,14 +1197,16 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
     },
     hero: {
       eyebrow: "World of Warcraft Intelligence",
+      titleLead: "Command-grade",
+      titleAccent: "Ranking Data",
       title: "Ranking, progression, and scouting data for Azeroth in a front that finally feels operational.",
       description:
-        "Guild progression, Mythic+ form, character power, and public activity signals gathered in a cleaner, sharper, and far more reliable interface.",
+        "Guild progression, Mythic+ rankings, and character analytics aggregated across realms and regions in a live warboard shaped directly from the new redesign.",
       readings: [
-        { label: "Visible guilds", detail: "Entries currently returned by the warboard" },
+        { label: "Tracked entities", detail: "Public entries currently loaded into the warboard" },
+        { label: "Visible realms", detail: "Realm footprint covered by the current ladder readout" },
         { label: "Live events", detail: "Public feed events available right now" },
-        { label: "Raid bosses", detail: "Encounters returned in the latest readout" },
-        { label: "Feed state", detail: "Signal quality for the opening dashboard" },
+        { label: "Update cycle", detail: "Current sync posture and endpoint availability" },
       ],
       observatoryEyebrow: "Season overview",
       observatoryTitle: "A consolidated readout of the season, the warboard, and the public feed.",
@@ -1272,6 +1302,18 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
       guildWarboard: "Guild warboard",
       liveScore: "Live score",
       rankingReadout: "Ranking readout",
+      filter: "Filter",
+      regionTabs: {
+        us: "US",
+        eu: "EU",
+        kr: "KR",
+        tw: "TW",
+      },
+      modeTabs: {
+        raid: "Raid",
+        mythicPlus: "Mythic+",
+        combined: "Combined",
+      },
       columns: {
         rank: "#",
         guild: "Guild",

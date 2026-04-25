@@ -16,6 +16,8 @@ export type HeroOverview = {
 type HeroProps = {
   copy: {
     eyebrow: string;
+    titleLead: string;
+    titleAccent: string;
     title: string;
     description: string;
     readings: Array<{ label: string; detail: string }>;
@@ -37,79 +39,71 @@ type HeroProps = {
   overview: HeroOverview;
 };
 
-function metricToneClass(tone?: HeroMetric["tone"]) {
-  if (tone === "gold") return "text-gold";
-  if (tone === "cyan") return "text-sky-100";
-  if (tone === "green") return "text-emerald-100";
-  return "text-white";
+function metricValueClass(tone?: HeroMetric["tone"]) {
+  if (tone === "gold") return "an-intel-metric-val gold";
+  if (tone === "cyan") return "an-intel-metric-val cyan";
+  return "an-intel-metric-val";
+}
+
+function detailValueClass(tone?: HeroMetric["tone"]) {
+  if (tone === "gold") return "an-intel-info-val gold";
+  if (tone === "cyan") return "an-intel-info-val cyan";
+  if (tone === "green") return "an-intel-info-val green";
+  return "an-intel-info-val";
 }
 
 export function Hero({ copy, metrics, overview }: HeroProps) {
   return (
-    <section className="nexus-hero-shell grid gap-8 xl:grid-cols-[1fr_480px] xl:items-start">
-      <div className="space-y-8">
-        <div>
-          <div className="eyebrow">{copy.eyebrow}</div>
-          <h1 className="mt-6 display-title max-w-5xl">{copy.title}</h1>
-          <p className="mt-6 max-w-4xl lead-copy">{copy.description}</p>
-        </div>
+    <section className="an-hero">
+      <div className="an-hero-grid">
+        <div className="an-animate-in">
+          <div className="an-hero-eyebrow">{copy.eyebrow}</div>
+          <h1 className="an-hero-title">
+            {copy.titleLead}
+            <span>{copy.titleAccent}</span>
+          </h1>
+          <p className="an-hero-desc">{copy.description}</p>
 
-        <SearchCommandPalette compact />
+          <SearchCommandPalette compact />
 
-        <div className="flex flex-col gap-4 pt-1 sm:flex-row sm:flex-wrap sm:items-stretch sm:gap-6">
-          {metrics.map((metric, index) => (
-            <div key={metric.label} className="flex items-center gap-4">
-              <div className="min-w-0">
-                <div className={`font-['Space_Mono',monospace] text-[1.35rem] font-bold sm:text-[1.5rem] ${metricToneClass(metric.tone)}`}>
-                  {metric.value}
+          <div className="an-hero-stats">
+            {metrics.map((metric, index) => (
+              <div key={metric.label} className="an-hero-stat-group">
+                <div className="an-hero-stat-item">
+                  <span className="an-hero-stat-value">{metric.value}</span>
+                  <span className="an-hero-stat-label">{metric.label}</span>
                 </div>
-                <div className="mt-1 text-[0.68rem] uppercase tracking-[0.18em] text-white/48">{metric.label}</div>
-                {metric.detail ? <div className="mt-1 max-w-[14rem] text-sm text-white/50">{metric.detail}</div> : null}
+                {index < metrics.length - 1 ? <div className="an-hero-stat-div" /> : null}
               </div>
-              {index < metrics.length - 1 ? <div className="hidden h-12 w-px bg-white/10 sm:block" /> : null}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <aside className="panel panel-legendary p-5">
-        <div className="flex items-center justify-between gap-4 border-b border-white/8 pb-4">
-          <div>
-            <div className="text-[0.68rem] uppercase tracking-[0.26em] text-gold/75">{copy.observatoryEyebrow}</div>
-            <h2 className="mt-3 text-[1.5rem] leading-tight text-white" style={{ fontFamily: "var(--font-display)" }}>
-              {copy.observatoryTitle}
-            </h2>
+            ))}
           </div>
-          <span className="rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-emerald-100">
-            {overview.badge}
-          </span>
         </div>
 
-        <div className="mt-5 grid gap-px overflow-hidden rounded-[18px] border border-white/8 bg-white/8 sm:grid-cols-2">
-          {overview.metrics.map((metric) => (
-            <div key={metric.label} className="bg-[rgba(14,22,40,0.98)] px-4 py-4">
-              <div className="font-['Space_Mono',monospace] text-[1.55rem] font-bold tracking-tight text-white">
-                <span className={metricToneClass(metric.tone)}>{metric.value}</span>
+        <aside className="an-intel-panel an-animate-in an-delay-2">
+          <div className="an-intel-header">
+            <span className="an-intel-title">{copy.observatoryEyebrow}</span>
+            <span className="an-intel-badge">{overview.badge}</span>
+          </div>
+
+          <div className="an-intel-metrics">
+            {overview.metrics.map((metric) => (
+              <div key={metric.label} className="an-intel-metric">
+                <div className={metricValueClass(metric.tone)}>{metric.value}</div>
+                <div className="an-intel-metric-label">{metric.label}</div>
               </div>
-              <div className="mt-2 text-[0.68rem] uppercase tracking-[0.22em] text-white/45">{metric.label}</div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
 
-        <div className="mt-5 rounded-[18px] border border-white/8 bg-black/20 px-4 py-3">
-          {overview.details.map((detail, index) => (
-            <div
-              key={detail.label}
-              className={`flex items-center justify-between gap-4 py-3 ${
-                index < overview.details.length - 1 ? "border-b border-white/8" : ""
-              }`}
-            >
-              <span className="text-sm text-white/55">{detail.label}</span>
-              <span className={`text-right text-sm font-semibold ${metricToneClass(detail.tone)}`}>{detail.value}</span>
-            </div>
-          ))}
-        </div>
-      </aside>
+          <div className="an-intel-info">
+            {overview.details.map((detail) => (
+              <div key={detail.label} className="an-intel-info-row">
+                <span className="an-intel-info-key">{detail.label}</span>
+                <span className={detailValueClass(detail.tone)}>{detail.value}</span>
+              </div>
+            ))}
+          </div>
+        </aside>
+      </div>
     </section>
   );
 }
